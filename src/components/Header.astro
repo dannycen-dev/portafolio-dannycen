@@ -1,0 +1,202 @@
+---
+import { nav, site } from "../data/site";
+
+const pathname = Astro.url.pathname;
+---
+
+<header class="header" transition:persist>
+  <div class="header__inner container">
+    <a class="header__brand" href="/" aria-label={`${site.name} — inicio`}>
+      {site.name}
+    </a>
+
+    <button
+      class="header__toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-nav"
+      data-nav-toggle
+    >
+      <span class="sr-only">Menú</span>
+      <span class="header__toggle-lines" aria-hidden="true"></span>
+    </button>
+
+    <nav class="header__nav" id="site-nav" data-nav>
+      <ul>
+        {
+          nav.map((item) => {
+            const active =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <li>
+                <a href={item.href} aria-current={active ? "page" : undefined}>
+                  {item.label}
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  function bindNav() {
+    const toggle = document.querySelector<HTMLButtonElement>("[data-nav-toggle]");
+    const nav = document.querySelector<HTMLElement>("[data-nav]");
+    if (!toggle || !nav) return;
+
+    const close = () => {
+      toggle.setAttribute("aria-expanded", "false");
+      nav.classList.remove("is-open");
+      document.body.classList.remove("nav-open");
+    };
+
+    toggle.onclick = () => {
+      const open = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!open));
+      nav.classList.toggle("is-open", !open);
+      document.body.classList.toggle("nav-open", !open);
+    };
+
+    nav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", close);
+    });
+  }
+
+  bindNav();
+  document.addEventListener("astro:page-load", bindNav);
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--nav-h);
+    backdrop-filter: blur(14px);
+    background: rgba(238, 241, 239, 0.78);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s var(--ease-out);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .header__brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+  }
+
+  .header__nav ul {
+    display: flex;
+    gap: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .header__nav a {
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--ink-soft);
+  }
+
+  .header__nav a[aria-current="page"],
+  .header__nav a:hover {
+    color: var(--ink);
+  }
+
+  .header__toggle {
+    display: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  .header__toggle-lines,
+  .header__toggle-lines::before,
+  .header__toggle-lines::after {
+    display: block;
+    width: 1.35rem;
+    height: 1.5px;
+    margin-inline: auto;
+    background: var(--ink);
+    transition: transform 0.3s var(--ease-out);
+  }
+
+  .header__toggle-lines::before,
+  .header__toggle-lines::after {
+    content: "";
+  }
+
+  .header__toggle-lines::before {
+    transform: translateY(-6px);
+  }
+
+  .header__toggle-lines::after {
+    transform: translateY(4.5px);
+  }
+
+  :global(body.nav-open) .header__toggle-lines {
+    background: transparent;
+  }
+
+  :global(body.nav-open) .header__toggle-lines::before {
+    transform: translateY(0) rotate(45deg);
+  }
+
+  :global(body.nav-open) .header__toggle-lines::after {
+    transform: translateY(-1.5px) rotate(-45deg);
+  }
+
+  @media (max-width: 760px) {
+    .header__toggle {
+      display: grid;
+      place-items: center;
+    }
+
+    .header__nav {
+      position: fixed;
+      inset: var(--nav-h) 0 0;
+      display: grid;
+      align-content: start;
+      padding: 2rem var(--gutter);
+      background: rgba(238, 241, 239, 0.97);
+      transform: translateY(-0.5rem);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        opacity 0.3s var(--ease-out),
+        transform 0.3s var(--ease-out);
+    }
+
+    .header__nav.is-open {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    .header__nav ul {
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .header__nav a {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 650;
+      color: var(--ink);
+    }
+  }
+</style>

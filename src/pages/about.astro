@@ -1,0 +1,185 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { experience, skills, site } from "../data/site";
+---
+
+<BaseLayout
+  title={`Sobre mí — ${site.name}`}
+  description={site.shortBio}
+>
+  <section class="section about">
+    <div class="container about__grid">
+      <div data-reveal>
+        <p class="section-label">Sobre mí</p>
+        <h1 class="section-title">Más de 10 años construyendo tecnología útil</h1>
+      </div>
+      <div class="about__copy" data-reveal>
+        <p>
+          Soy {site.fullName}, desarrollador web y especialista en automatización y
+          agentes de inteligencia artificial basado en {site.location}.
+        </p>
+        <p>
+          Diseño e implemento agentes de IA, chatbots inteligentes y flujos de
+          automatización integrados con CRM, APIs y sistemas empresariales. Trabajo
+          con editores y terminales asistidos por IA (Cursor, Claude Code, Warp) para
+          acelerar desarrollo, debugging y despliegues.
+        </p>
+        <p>
+          Mi perfil es híbrido: técnico y estratégico. He sido Product Owner, Project
+          Manager y Administrador de Aplicaciones, además de implementador certificado
+          de Kommo CRM e integrador de WhatsApp Cloud API.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section experience">
+    <div class="container">
+      <div data-reveal>
+        <p class="section-label">Experiencia</p>
+        <h2 class="section-title">Trayectoria reciente</h2>
+      </div>
+      <ol class="timeline">
+        {
+          experience.map((job) => (
+            <li class="timeline__item" data-reveal>
+              <div class="timeline__meta">
+                <p class="timeline__period">{job.period}</p>
+                <p class="timeline__mode">{job.mode}</p>
+              </div>
+              <div>
+                <h3>{job.role}</h3>
+                <p class="timeline__company">{job.company}</p>
+                <p>{job.summary}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section skills">
+    <div class="container">
+      <div data-reveal>
+        <p class="section-label">Stack</p>
+        <h2 class="section-title">Herramientas con las que trabajo</h2>
+      </div>
+      <div class="skills__grid">
+        {
+          Object.entries(skills).map(([group, items]) => (
+            <div class="skills__group" data-reveal>
+              <h3>{group}</h3>
+              <ul>
+                {items.map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: 1.75rem;
+  }
+
+  .about__copy {
+    display: grid;
+    gap: 1rem;
+    max-width: 58ch;
+    color: var(--ink-soft);
+  }
+
+  .experience {
+    border-block: 1px solid var(--line);
+  }
+
+  .timeline {
+    margin-top: 2.5rem;
+    display: grid;
+    gap: 0;
+  }
+
+  .timeline__item {
+    display: grid;
+    gap: 0.75rem;
+    padding-block: 1.6rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .timeline__item:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .timeline__period {
+    font-family: var(--font-display);
+    font-weight: 650;
+  }
+
+  .timeline__mode,
+  .timeline__company {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .timeline__company {
+    margin-block: 0.25rem 0.55rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .timeline h3 {
+    font-size: 1.35rem;
+  }
+
+  .timeline__item p:last-child {
+    color: var(--ink-soft);
+    max-width: 52ch;
+  }
+
+  .skills__grid {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: 2.5rem;
+  }
+
+  .skills__group h3 {
+    margin-bottom: 0.85rem;
+    font-size: 1.15rem;
+  }
+
+  .skills__group ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 1rem;
+  }
+
+  .skills__group li {
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line);
+  }
+
+  @media (min-width: 860px) {
+    .about__grid {
+      grid-template-columns: 0.9fr 1.1fr;
+      align-items: start;
+      gap: 3rem;
+    }
+
+    .timeline__item {
+      grid-template-columns: 14rem 1fr;
+      gap: 2rem;
+    }
+
+    .skills__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2rem;
+    }
+  }
+</style>

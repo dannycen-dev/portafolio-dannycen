@@ -1,0 +1,92 @@
+---
+import type { Project } from "../data/projects";
+
+interface Props {
+  project: Project;
+}
+
+const { project } = Astro.props;
+---
+
+<article class="card" data-project-card data-reveal>
+  <a class="card__link" href={`/projects#${project.slug}`}>
+    <div class="card__media" style={`--accent:${project.accent}`}>
+      <div class="card__visual" data-project-media>
+        <span class="card__initials">{project.title.slice(0, 2)}</span>
+      </div>
+    </div>
+    <div class="card__body">
+      <p class="card__role">{project.role}</p>
+      <h3>{project.title}</h3>
+      <p class="card__summary">{project.summary}</p>
+      <ul class="card__tags">
+        {project.tags.map((tag) => <li>{tag}</li>)}
+      </ul>
+    </div>
+  </a>
+</article>
+
+<style>
+  .card__link {
+    display: grid;
+    gap: 1rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .card__media {
+    overflow: hidden;
+    aspect-ratio: 16 / 11;
+    background: var(--accent);
+  }
+
+  .card__visual {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.18), transparent 40%),
+      linear-gradient(145deg, color-mix(in srgb, var(--accent) 80%, white), var(--accent));
+    transform-origin: center;
+  }
+
+  .card__initials {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .card__role {
+    margin-bottom: 0.35rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .card h3 {
+    font-size: clamp(1.35rem, 1.1rem + 0.8vw, 1.7rem);
+  }
+
+  .card__summary {
+    margin-top: 0.55rem;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+  }
+
+  .card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+  }
+
+  .card__tags li {
+    font-size: 0.78rem;
+    color: var(--accent-deep);
+    border-bottom: 1px solid var(--accent-soft);
+  }
+</style>

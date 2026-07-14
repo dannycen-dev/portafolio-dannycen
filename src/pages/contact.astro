@@ -1,0 +1,133 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site";
+---
+
+<BaseLayout
+  title={`Contacto — ${site.name}`}
+  description={`Contacta a ${site.name} para proyectos de desarrollo, automatización e IA.`}
+>
+  <section class="section contact">
+    <div class="container contact__grid">
+      <div data-reveal>
+        <p class="section-label">Contacto</p>
+        <h1 class="section-title">Cuéntame qué quieres construir</h1>
+        <p class="section-lead">
+          Ideal para marcas y equipos que necesitan desarrollo web, automatizaciones
+          o agentes de IA listos para producción.
+        </p>
+      </div>
+
+      <div class="contact__panel" data-reveal>
+        <a class="contact__email" href={`mailto:${site.email}`}>{site.email}</a>
+        <ul>
+          <li>
+            <span>Ubicación</span>
+            <strong>{site.location}</strong>
+          </li>
+          <li>
+            <span>Teléfono</span>
+            <strong>
+              <a href={`tel:${site.phone.replace(/\s/g, "")}`}>{site.phone}</a>
+            </strong>
+          </li>
+          <li>
+            <span>LinkedIn</span>
+            <strong>
+              <a href={site.linkedin} target="_blank" rel="noopener noreferrer">
+                /in/dannyscen
+              </a>
+            </strong>
+          </li>
+          <li>
+            <span>GitHub</span>
+            <strong>
+              <a href={site.github} target="_blank" rel="noopener noreferrer">
+                @dannycen-dev
+              </a>
+            </strong>
+          </li>
+          <li>
+            <span>Disponibilidad</span>
+            <strong>{site.availability}</strong>
+          </li>
+        </ul>
+        <div class="contact__actions">
+          <a class="btn" href={`mailto:${site.email}?subject=Proyecto%20freelance`}>
+            Enviar email
+          </a>
+          <a
+            class="btn btn--ghost"
+            href={site.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact__grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .contact__panel {
+    padding: clamp(1.5rem, 4vw, 2.25rem);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+  }
+
+  .contact__email {
+    display: inline-block;
+    margin-bottom: 1.75rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 1rem + 1.4vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+    word-break: break-word;
+  }
+
+  .contact__panel ul {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .contact__panel li {
+    display: grid;
+    gap: 0.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .contact__panel li span {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .contact__panel a {
+    text-decoration: none;
+  }
+
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  @media (min-width: 900px) {
+    .contact__grid {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+      gap: 3.5rem;
+    }
+  }
+</style>
