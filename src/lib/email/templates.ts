@@ -178,13 +178,13 @@ export function bookingVisitorEmail(opts: {
   const tz = opts.timezone === "America/Merida" ? (en ? "CST (Mérida, Yucatán)" : "CST (Mérida, Yucatán)") : opts.timezone;
   return renderBrandEmail({
     lang: en ? "en" : "es",
-    eyebrow: en ? "Consultation booked" : "Consulta agendada",
-    title: en ? "Let’s remove friction together" : "Vamos a quitar fricción juntos",
+    eyebrow: en ? "Your call is confirmed" : "Tu cita está confirmada",
+    title: en ? "Thanks for booking time with me" : "Gracias por agendar conmigo",
     greeting: en ? `Hi ${opts.name},` : `Hola ${opts.name},`,
     intro: en
-      ? "Your automation & systems consult is on the calendar. We’ll look at the process that slows you down most — ERP, CRM, data, or RevOps — and sketch a clear path. You’ll also get a Google Calendar invite from me."
-      : "Tu consulta de automatización y sistemas ya está en el calendario. Vamos a mirar el proceso o sistema que más fricción te genera — ERP, CRM, datos o RevOps — y armar una ruta clara. También te llega la invitación de Google Calendar desde mi correo.",
-    detailsTitle: en ? "When we talk" : "Cuándo hablamos",
+      ? "Thank you for scheduling a consult on dannydev.space — I really appreciate it. I’m looking forward to hearing about your project and seeing how I can help with automation, systems, or RevOps. You’ll also receive a Google Calendar invite from my email."
+      : "Gracias por agendar una consulta en dannydev.space — de verdad lo aprecio. Tengo ganas de escucharte y ver cómo puedo ayudarte con automatización, sistemas o RevOps. También te llegará la invitación de Google Calendar desde mi correo.",
+    detailsTitle: en ? "Your appointment" : "Detalle de tu cita",
     rows: [
       { label: en ? "Date" : "Fecha", value: opts.dateLabel },
       { label: en ? "Time" : "Hora", value: `${opts.timeLabel} (${tz})` },
@@ -200,8 +200,8 @@ export function bookingVisitorEmail(opts: {
       : undefined,
     ctaSecondaryHref: opts.calendarLink || undefined,
     footerNote: en
-      ? `Need to move it? Reply here or WhatsApp ${site.phone}. — Danny`
-      : `¿Hay que moverla? Responde este correo o WhatsApp ${site.phone}. — Danny`,
+      ? `Need to reschedule? Just reply here or WhatsApp ${site.phone}. Happy to help. — Danny`
+      : `¿Necesitas cambiar la hora? Escríbeme por aquí o por WhatsApp ${site.phone}. Con gusto te ayudo. — Danny`,
   });
 }
 
@@ -223,7 +223,7 @@ export function bookingOwnerEmail(opts: {
     eyebrow: "Nueva consulta en el calendario",
     title: `${opts.name} agendó contigo`,
     greeting: "Danny,",
-    intro: "Alguien reservó la consulta de automatización y sistemas desde dannydev.space. Ya tienes el evento en Calendar; aquí el resumen para que contactes sin fricción.",
+    intro: "Alguien reservó una consulta desde dannydev.space. El evento ya está en tu Calendar; aquí tienes sus datos por si quieres escribirle antes de la llamada.",
     detailsTitle: "Quién y cuándo",
     rows: [
       { label: "Nombre", value: opts.name },
@@ -257,13 +257,13 @@ export function messageVisitorEmail(opts: {
     opts.message.length > 280 ? `${opts.message.slice(0, 280).trim()}…` : opts.message;
   return renderBrandEmail({
     lang: en ? "en" : "es",
-    eyebrow: en ? "Message received" : "Mensaje recibido",
-    title: en ? "I’ll get back to you" : "Yo me pongo en contacto",
+    eyebrow: en ? "Thanks for reaching out" : "Gracias por escribirme",
+    title: en ? "I received your message" : "Recibí tu mensaje",
     greeting: en ? `Hi ${opts.name},` : `Hola ${opts.name},`,
     intro: en
-      ? "Thanks for writing from dannydev.space. I read every note myself — usually about the system or process that’s eating time. I’ll reply by email or WhatsApp with a clear next step. No need to chase me."
-      : "Gracias por escribir desde dannydev.space. Leo cada mensaje yo mismo — casi siempre sobre el sistema o proceso que te está consumiendo tiempo. Te respondo por correo o WhatsApp con un siguiente paso claro. No hace falta que me persigas.",
-    detailsTitle: en ? "What you sent" : "Lo que me compartiste",
+      ? "Thank you for getting in touch through dannydev.space — I really appreciate you taking the time. I read every message personally and I’ll get back to you by email or WhatsApp as soon as I can. If something is urgent, feel free to follow up; I’m happy to help."
+      : "Gracias por escribirme desde dannydev.space — de verdad aprecio que te hayas tomado el tiempo. Leo cada mensaje personalmente y te respondo por correo o WhatsApp lo antes posible. Si te urge, puedes escribirme de nuevo; con gusto te atiendo.",
+    detailsTitle: en ? "What you shared" : "Lo que me compartiste",
     rows: [{ label: en ? "Your note" : "Tu nota", value: preview }],
     ctaLabel: en ? "Browse the portfolio" : "Ver el portafolio",
     ctaHref: en ? `${SITE}/en/portafolio/` : `${SITE}/portafolio/`,
@@ -293,7 +293,7 @@ export function messageOwnerEmail(opts: {
     eyebrow: "Nuevo mensaje del sitio",
     title: `${opts.name} quiere que lo contactes`,
     greeting: "Danny,",
-    intro: "Llegó un mensaje desde el formulario de dannydev.space. Abajo vas directo a responderle por correo o WhatsApp — sin pelear con la bandeja.",
+    intro: "Te escribieron desde el formulario de dannydev.space. Aquí tienes sus datos y el mensaje para que puedas responderles cuando puedas.",
     detailsTitle: "Datos y mensaje",
     rows: [
       { label: "Nombre", value: opts.name },

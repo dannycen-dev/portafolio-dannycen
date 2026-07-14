@@ -73,8 +73,8 @@ export const POST: APIRoute = async ({ request }) => {
       const sentVisitor = await sendEmail(e, {
         to: email,
         subject: locale.startsWith("en")
-          ? "I got your message | Danny Cen"
-          : "Recibi tu mensaje | Danny Cen",
+          ? "Thanks for your message | Danny Cen"
+          : "Gracias por escribirme | Danny Cen",
         html: visitor.html,
         text: visitor.text,
         replyTo: ownerTo,

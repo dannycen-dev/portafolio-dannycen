@@ -175,8 +175,8 @@ export const POST: APIRoute = async ({ request }) => {
         const sentVisitor = await sendEmail(e, {
           to: email,
           subject: locale.startsWith("en")
-            ? `Consultation booked | ${dateLabel}`
-            : `Consulta agendada | ${dateLabel}`,
+            ? `Thanks for booking | ${dateLabel}`
+            : `Gracias por agendar | ${dateLabel}`,
           html: visitor.html,
           text: visitor.text,
           replyTo: ownerTo,
