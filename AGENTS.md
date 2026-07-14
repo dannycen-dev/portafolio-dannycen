@@ -59,10 +59,10 @@ En **Settings → Builds** pon:
 | Campo | Valor |
 |--------|--------|
 | Build command | `npm run build` |
-| **Output directory** | **`dist/pages`** |
+| **Output directory** | **`dist`** (o `dist/pages`) |
 | Node version | **22** |
 
-El adapter escribe HTML en `dist/client`; el script `prepare-pages` lo copia a `dist/pages` para el upload estático de Pages.
+El adapter escribe HTML en `dist/client`; `prepare-pages` lo copia también a `dist/` y `dist/pages` para el upload estático de Pages.
 
 Para `/api/*` + D1 más adelante: Deploy command `npx wrangler deploy` (Workers Builds) y binding D1 `DB`.
 
