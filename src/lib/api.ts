@@ -35,14 +35,33 @@ export function serverError(message: string, details?: unknown) {
   return json({ ok: false, error: message, details }, 500);
 }
 
+function isAllowedOrigin(origin: string, siteUrl: string): boolean {
+  const o = origin.replace(/\/$/, "");
+  if (!o) return false;
+  if (
+    o === siteUrl.replace(/\/$/, "") ||
+    o === "http://127.0.0.1:4329" ||
+    o === "http://localhost:4329"
+  ) {
+    return true;
+  }
+  try {
+    const { hostname } = new URL(o);
+    return (
+      hostname.endsWith(".workers.dev") ||
+      hostname === "portafolio-dannycen.pages.dev" ||
+      hostname.endsWith(".portafolio-dannycen.pages.dev")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function corsHeaders(request: Request, siteUrl = "https://dannydev.space") {
   const origin = request.headers.get("Origin") || "";
-  const allowed = new Set([
-    siteUrl.replace(/\/$/, ""),
-    "http://127.0.0.1:4329",
-    "http://localhost:4329",
-  ]);
-  const allow = allowed.has(origin.replace(/\/$/, "")) ? origin : siteUrl.replace(/\/$/, "");
+  const allow = isAllowedOrigin(origin, siteUrl)
+    ? origin.replace(/\/$/, "")
+    : siteUrl.replace(/\/$/, "");
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",

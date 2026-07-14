@@ -50,21 +50,29 @@ npx wrangler secret put GOOGLE_REFRESH_TOKEN
 
 API routes: `/api/health/`, `/api/messages/`, `/api/bookings/`
 
-### Cloudflare Pages (Git → main)
+### Cloudflare Deploy (Worker + assets + D1)
 
-Proyecto: **portafolio-dannycen** → `https://portafolio-dannycen.pages.dev`
+Worker: **dannydev-portfolio** (Astro adapter + D1 `dannydev-contact`).
 
-En **Settings → Builds** pon:
+```bash
+npm run build && npx wrangler deploy
+```
 
-| Campo | Valor |
-|--------|--------|
-| Build command | `npm run build` |
-| **Output directory** | **`dist`** (o `dist/pages`) |
-| Node version | **22** |
+Sitio + API same-origin: `https://dannydev-portfolio.dannycen-dev.workers.dev` (y luego dominio custom).
 
-El adapter escribe HTML en `dist/client`; `prepare-pages` lo copia también a `dist/` y `dist/pages` para el upload estático de Pages.
+#### Panel — Workers Builds (push a `main`)
 
-Para `/api/*` + D1 más adelante: Deploy command `npx wrangler deploy` (Workers Builds) y binding D1 `DB`.
+1. **Workers & Pages** → Worker **dannydev-portfolio** (tras el primer `wrangler deploy`).
+2. **Settings → Builds** → Connect repository `portafolio-dannycen`:
+   - Branch: `main`
+   - Build command: `npm run build`
+   - Deploy command: `npx wrangler deploy`
+   - Node: **22**
+3. En el proyecto Pages **portafolio-dannycen**: **Settings → Builds** → desactiva auto-deploy (evita doble publish estático sin SSR).
+4. Dominio: **Workers → dannydev-portfolio → Custom Domains** → `dannydev.space` (cuando el DNS esté listo).
+5. Secrets (cuando tengas OAuth): `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`.
+
+El adapter escribe HTML en `dist/client`. `prepare-pages` también copia a `dist/` por si el proyecto Pages estático sigue activo un rato.
 
 ## Documentation
 

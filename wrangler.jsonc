@@ -4,14 +4,25 @@
   "compatibility_date": "2026-07-13",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@astrojs/cloudflare/entrypoints/server",
+  "workers_dev": true,
+  "preview_urls": true,
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist/client",
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
+    // SSR API before static (so /api/* never falls through to HTML).
+    "run_worker_first": ["/api/*"]
   },
   "observability": {
     "enabled": true
   },
+  // Astro session driver — provisioned on first deploy
+  "kv_namespaces": [
+    {
+      "binding": "SESSION",
+      "id": "c0b02d4cc34245ee9c212f75099bdb2a"
+    }
+  ],
   "vars": {
     "PUBLIC_SITE_URL": "https://dannydev.space",
     "BOOKING_TIMEZONE": "America/Merida",
