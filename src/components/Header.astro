@@ -188,6 +188,13 @@ const otherLang: Lang = lang === "es" ? "en" : "es";
   }
 
   @media (max-width: 760px) {
+    /* backdrop-filter creates a containing block that traps position:fixed
+       children — drop it on mobile so the drawer can cover the viewport. */
+    .header {
+      backdrop-filter: none;
+      background: var(--bg);
+    }
+
     .header__toggle {
       display: grid;
       place-items: center;
@@ -195,14 +202,20 @@ const otherLang: Lang = lang === "es" ? "en" : "es";
 
     .header__nav {
       position: fixed;
-      inset: var(--nav-h) 0 0;
+      top: var(--nav-h);
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 40;
       display: grid;
       align-content: start;
-      padding: 2rem var(--gutter);
-      background: rgba(238, 241, 239, 0.97);
+      padding: 2rem var(--gutter) 3rem;
+      background: var(--bg);
       transform: translateY(-0.5rem);
       opacity: 0;
       pointer-events: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       transition:
         opacity 0.3s var(--ease-out),
         transform 0.3s var(--ease-out);

@@ -72,6 +72,42 @@ test.describe("Responsive layouts", () => {
     }
   });
 
+  test("mobile hamburger menu covers viewport with opaque background", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    const toggle = page.locator("[data-nav-toggle]");
+    await expect(toggle).toBeVisible();
+    await toggle.click();
+
+    const nav = page.locator("[data-nav]");
+    await expect(nav).toHaveClass(/is-open/);
+
+    const metrics = await nav.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const r = el.getBoundingClientRect();
+      return {
+        bg: cs.backgroundColor,
+        height: r.height,
+        top: r.top,
+        bottom: r.bottom,
+        vh: window.innerHeight,
+      };
+    });
+
+    // Cover from under the sticky header nearly to the bottom (subpixel / safe-area tolerance)
+    expect(metrics.top).toBeGreaterThanOrEqual(60);
+    expect(metrics.bottom).toBeGreaterThanOrEqual(metrics.vh - 12);
+    expect(metrics.height).toBeGreaterThan(metrics.vh * 0.8);
+
+    // Opaque solid background (no alpha / not transparent)
+    expect(metrics.bg).toMatch(/^rgb\(/);
+    expect(metrics.bg).not.toBe("rgba(0, 0, 0, 0)");
+    expect(metrics.bg).not.toContain("0.97");
+
+    await expect(nav.getByRole("link", { name: "Sobre mí" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Contacto" })).toBeVisible();
+  });
+
   test("portfolio grid columns adapt by breakpoint", async ({ page }) => {
     await page.goto("/portafolio/");
 
