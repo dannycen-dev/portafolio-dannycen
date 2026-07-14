@@ -167,6 +167,7 @@ export const POST: APIRoute = async ({ request }) => {
         timeLabel,
         timezone,
         meetLink,
+        calendarLink: event.htmlLink,
         bookingId: id,
       });
 
@@ -174,15 +175,15 @@ export const POST: APIRoute = async ({ request }) => {
         const sentVisitor = await sendEmail(e, {
           to: email,
           subject: locale.startsWith("en")
-            ? `Confirmed | ${dateLabel} | ${timeLabel}`
-            : `Cita confirmada | ${dateLabel} | ${timeLabel}`,
+            ? `Consultation booked | ${dateLabel}`
+            : `Consulta agendada | ${dateLabel}`,
           html: visitor.html,
           text: visitor.text,
           replyTo: ownerTo,
         });
         const sentOwner = await sendEmail(e, {
           to: ownerTo,
-          subject: `Nueva cita | ${date} ${slot} | ${name}`,
+          subject: `${name} reservo consulta | ${date} ${slot}`,
           html: owner.html,
           text: owner.text,
           replyTo: email,

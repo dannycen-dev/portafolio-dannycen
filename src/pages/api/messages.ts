@@ -60,7 +60,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (hasGoogleCreds(e)) {
     try {
-      const visitor = messageVisitorEmail({ locale, name, message });
+      const visitor = messageVisitorEmail({ locale, name, message, email });
       const owner = messageOwnerEmail({
         name,
         email,
@@ -73,20 +73,20 @@ export const POST: APIRoute = async ({ request }) => {
       const sentVisitor = await sendEmail(e, {
         to: email,
         subject: locale.startsWith("en")
-          ? "We received your message | Danny Cen"
+          ? "I got your message | Danny Cen"
           : "Recibi tu mensaje | Danny Cen",
         html: visitor.html,
         text: visitor.text,
         replyTo: ownerTo,
       });
-      await sendEmail(e, {
+      const sentOwner = await sendEmail(e, {
         to: ownerTo,
-        subject: `Mensaje web | ${name}`,
+        subject: `${name} quiere que lo contactes | dannydev.space`,
         html: owner.html,
         text: owner.text,
         replyTo: email,
       });
-      gmailId = sentVisitor.id || null;
+      gmailId = sentVisitor.id || sentOwner.id || null;
     } catch (err) {
       warn = `Saved to D1; Gmail failed: ${err instanceof Error ? err.message : String(err)}`;
     }
