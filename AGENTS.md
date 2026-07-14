@@ -52,13 +52,19 @@ API routes: `/api/health/`, `/api/messages/`, `/api/bookings/`
 
 ### Cloudflare Pages (Git → main)
 
-El adapter escribe assets en `dist/client` (no en `dist/`). En el proyecto **portafolio-dannycen**:
+Proyecto: **portafolio-dannycen** → `https://portafolio-dannycen.pages.dev`
 
-1. **Settings → Builds** → Output directory: `dist/client`  
-   **o** deja que Wrangler use `pages_build_output_dir` del `wrangler.jsonc`.
-2. Build command: `npm run build`
-3. Node: **22**
-4. Para que `/api/*` + D1 funcionen de verdad, el proyecto debe desplegar con Worker (`npx wrangler deploy` como Deploy command / Workers Builds), no solo uploads estáticos.
+En **Settings → Builds** pon:
+
+| Campo | Valor |
+|--------|--------|
+| Build command | `npm run build` |
+| **Output directory** | **`dist/pages`** |
+| Node version | **22** |
+
+El adapter escribe HTML en `dist/client`; el script `prepare-pages` lo copia a `dist/pages` para el upload estático de Pages.
+
+Para `/api/*` + D1 más adelante: Deploy command `npx wrangler deploy` (Workers Builds) y binding D1 `DB`.
 
 ## Documentation
 

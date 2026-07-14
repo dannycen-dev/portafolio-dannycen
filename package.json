@@ -7,10 +7,10 @@
   },
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 4329",
-    "build": "astro build",
+    "build": "astro build && node scripts/prepare-pages.mjs",
     "preview": "astro preview --host 127.0.0.1 --port 4329",
     "astro": "astro",
-    "deploy": "astro build && wrangler deploy",
+    "deploy": "npm run build && wrangler deploy",
     "cf:types": "wrangler types",
     "db:create": "wrangler d1 create dannydev-contact",
     "db:migrate:local": "wrangler d1 migrations apply dannydev-contact --local",
