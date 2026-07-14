@@ -50,6 +50,16 @@ npx wrangler secret put GOOGLE_REFRESH_TOKEN
 
 API routes: `/api/health/`, `/api/messages/`, `/api/bookings/`
 
+### Cloudflare Pages (Git → main)
+
+El adapter escribe assets en `dist/client` (no en `dist/`). En el proyecto **portafolio-dannycen**:
+
+1. **Settings → Builds** → Output directory: `dist/client`  
+   **o** deja que Wrangler use `pages_build_output_dir` del `wrangler.jsonc`.
+2. Build command: `npm run build`
+3. Node: **22**
+4. Para que `/api/*` + D1 funcionen de verdad, el proyecto debe desplegar con Worker (`npx wrangler deploy` como Deploy command / Workers Builds), no solo uploads estáticos.
+
 ## Documentation
 
 Full documentation: https://docs.astro.build
