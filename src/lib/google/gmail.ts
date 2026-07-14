@@ -1,6 +1,8 @@
 /**
  * Gmail send helper (HTML + plain text) via OAuth refresh token.
  * From address is always the authorized Gmail (dannycen.dev@gmail.com).
+ *
+ * MIME parts are base64-encoded so UTF-8 (Spanish) and HTML survive Gmail ingest.
  */
 
 import { getGoogleAccessToken, type GoogleAuthEnv } from "./auth";
@@ -15,24 +17,32 @@ export type SendEmailInput = {
   html: string;
   text: string;
   replyTo?: string;
-  /** Display name in From header */
   fromName?: string;
 };
 
-function toBase64Url(input: string) {
+function utf8ToBinary(input: string) {
   const bytes = new TextEncoder().encode(input);
   let binary = "";
   for (const b of bytes) binary += String.fromCharCode(b);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return binary;
 }
 
-function encodeSubject(subject: string) {
-  // RFC 2047 for non-ASCII subjects
-  if (/^[\x20-\x7E]*$/.test(subject)) return subject;
-  const bytes = new TextEncoder().encode(subject);
-  let binary = "";
-  for (const b of bytes) binary += String.fromCharCode(b);
-  return `=?UTF-8?B?${btoa(binary)}?=`;
+function toBase64(input: string) {
+  return btoa(utf8ToBinary(input));
+}
+
+function toBase64Url(input: string) {
+  return toBase64(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+/** Soft-wrap base64 at 76 chars (RFC 2045). */
+function foldBase64(b64: string) {
+  return b64.replace(/.{1,76}/g, (line) => `${line}\r\n`).trimEnd();
+}
+
+function encodeHeaderAtom(value: string) {
+  if (/^[\x20-\x7E]*$/.test(value) && !/[\\"]/.test(value)) return value;
+  return `=?UTF-8?B?${toBase64(value)}?=`;
 }
 
 function buildMime(opts: {
@@ -44,37 +54,41 @@ function buildMime(opts: {
   text: string;
   replyTo?: string;
 }) {
-  const boundary = `b_${crypto.randomUUID().replace(/-/g, "")}`;
-  const from = `${opts.fromName} <${opts.fromEmail}>`;
+  const boundary = `mixed_${crypto.randomUUID().replace(/-/g, "")}`;
+  const messageId = `<${crypto.randomUUID()}@dannydev.space>`;
+  const date = new Date().toUTCString().replace(/GMT$/, "+0000");
+  const from = `${encodeHeaderAtom(opts.fromName)} <${opts.fromEmail}>`;
+
   const headers = [
     `From: ${from}`,
     `To: ${opts.to}`,
     opts.replyTo ? `Reply-To: ${opts.replyTo}` : "",
-    `Subject: ${encodeSubject(opts.subject)}`,
+    `Subject: ${encodeHeaderAtom(opts.subject)}`,
+    `Message-ID: ${messageId}`,
+    `Date: ${date}`,
     "MIME-Version: 1.0",
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ]
     .filter(Boolean)
     .join("\r\n");
 
-  const body = [
+  const textPart = [
     `--${boundary}`,
     'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: 7bit",
+    "Content-Transfer-Encoding: base64",
     "",
-    opts.text,
-    "",
-    `--${boundary}`,
-    'Content-Type: text/html; charset="UTF-8"',
-    "Content-Transfer-Encoding: 7bit",
-    "",
-    opts.html,
-    "",
-    `--${boundary}--`,
-    "",
+    foldBase64(toBase64(opts.text)),
   ].join("\r\n");
 
-  return `${headers}\r\n\r\n${body}`;
+  const htmlPart = [
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    foldBase64(toBase64(opts.html)),
+  ].join("\r\n");
+
+  return `${headers}\r\n\r\n${textPart}\r\n${htmlPart}\r\n--${boundary}--\r\n`;
 }
 
 export async function sendEmail(env: GmailEnv, input: SendEmailInput): Promise<{ id?: string }> {
@@ -104,27 +118,4 @@ export async function sendEmail(env: GmailEnv, input: SendEmailInput): Promise<{
     throw new Error(data.error?.message || `Gmail send failed (${res.status})`);
   }
   return { id: data.id };
-}
-
-/** @deprecated Prefer sendEmail — kept for any older callers */
-export async function sendGmailNotify(
-  env: GmailEnv,
-  opts: { subject: string; bodyText: string; replyToName?: string; replyToPhone?: string },
-): Promise<{ id?: string }> {
-  const to = env.NOTIFY_TO_EMAIL;
-  if (!to) throw new Error("NOTIFY_TO_EMAIL is not configured");
-  return sendEmail(env, {
-    to,
-    subject: opts.subject,
-    text: [
-      opts.bodyText,
-      opts.replyToName ? `Visitor: ${opts.replyToName}` : "",
-      opts.replyToPhone ? `Phone/WhatsApp: ${opts.replyToPhone}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n"),
-    html: `<pre style="font-family:system-ui,sans-serif;white-space:pre-wrap">${opts.bodyText
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")}</pre>`,
-  });
 }

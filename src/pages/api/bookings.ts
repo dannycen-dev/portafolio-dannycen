@@ -124,17 +124,19 @@ export const POST: APIRoute = async ({ request }) => {
   let googleEventId: string | null = null;
   let meetLink: string | null = null;
   let warn: string | undefined;
+  let mailVisitorId: string | undefined;
+  let mailOwnerId: string | undefined;
   const ownerTo = e.NOTIFY_TO_EMAIL || "dannycen.dev@gmail.com";
 
   if (hasGoogleCreds(e)) {
     try {
       const event = await createCalendarEvent(e, {
-        summary: `Cita · ${name}`,
+        summary: `Cita | ${name}`,
         description: [
           `Reserva desde dannydev.space`,
           `Nombre: ${name}`,
           `Email: ${email}`,
-          `Teléfono / WhatsApp: ${phone}`,
+          `Telefono / WhatsApp: ${phone}`,
           `Fecha: ${dateLabel}`,
           `Hora: ${timeLabel} (${timezone})`,
           `Locale: ${locale}`,
@@ -169,22 +171,24 @@ export const POST: APIRoute = async ({ request }) => {
       });
 
       try {
-        await sendEmail(e, {
+        const sentVisitor = await sendEmail(e, {
           to: email,
           subject: locale.startsWith("en")
-            ? `Confirmed · ${dateLabel} · ${timeLabel}`
-            : `Cita confirmada · ${dateLabel} · ${timeLabel}`,
+            ? `Confirmed | ${dateLabel} | ${timeLabel}`
+            : `Cita confirmada | ${dateLabel} | ${timeLabel}`,
           html: visitor.html,
           text: visitor.text,
           replyTo: ownerTo,
         });
-        await sendEmail(e, {
+        const sentOwner = await sendEmail(e, {
           to: ownerTo,
-          subject: `Nueva cita · ${date} ${slot} · ${name}`,
+          subject: `Nueva cita | ${date} ${slot} | ${name}`,
           html: owner.html,
           text: owner.text,
           replyTo: email,
         });
+        mailVisitorId = sentVisitor.id;
+        mailOwnerId = sentOwner.id;
       } catch (err) {
         warn = `Calendar OK; email failed: ${err instanceof Error ? err.message : String(err)}`;
       }
@@ -228,6 +232,7 @@ export const POST: APIRoute = async ({ request }) => {
       slot,
       meetLink,
       googleEventId,
+      emails: { visitor: mailVisitorId || null, owner: mailOwnerId || null },
       warning: warn,
     },
     201,
