@@ -83,6 +83,31 @@ export function newId(prefix: string) {
   return `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 20)}`;
 }
 
+/** Lightweight email check for lead forms (not full RFC). */
+export function isValidEmail(raw: string) {
+  const email = raw.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
+}
+
+export function formatBookingLabels(date: string, slot: string, locale: string) {
+  const when = new Date(`${date}T${slot}:00-06:00`);
+  const loc = locale.startsWith("en") ? "en-US" : "es-MX";
+  const dateLabel = new Intl.DateTimeFormat(loc, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Merida",
+  }).format(when);
+  const timeLabel = new Intl.DateTimeFormat(loc, {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "America/Merida",
+  }).format(when);
+  return { dateLabel, timeLabel };
+}
+
 export async function readJson<T>(request: Request): Promise<T | null> {
   try {
     return (await request.json()) as T;

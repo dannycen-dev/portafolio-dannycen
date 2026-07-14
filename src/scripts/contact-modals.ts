@@ -53,9 +53,10 @@ function bindContactForm() {
       const subjectTpl = form.dataset.subjectTpl || "Message from {name}";
       const data = new FormData(form);
       const name = String(data.get("name") || "").trim();
+      const visitorEmail = String(data.get("email") || "").trim();
       const phone = String(data.get("phone") || "").trim();
       const message = String(data.get("message") || "").trim();
-      if (!name || !phone || !message) return;
+      if (!name || !visitorEmail || !phone || !message) return;
 
       const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
       if (submit) {
@@ -68,6 +69,7 @@ function bindContactForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name,
+            email: visitorEmail,
             phone,
             message,
             locale: document.documentElement.lang?.startsWith("en") ? "en" : "es",
@@ -87,6 +89,7 @@ function bindContactForm() {
         const body = [
           `Nombre: ${name}`,
           `Name: ${name}`,
+          `Email: ${visitorEmail}`,
           `Teléfono / WhatsApp: ${phone}`,
           `Phone / WhatsApp: ${phone}`,
           "",

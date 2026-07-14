@@ -68,6 +68,10 @@ const t = useTranslations(lang);
           <input type="text" name="name" autocomplete="name" required />
         </label>
         <label>
+          <span>{t("contact.form_email")}</span>
+          <input type="email" name="email" autocomplete="email" required />
+        </label>
+        <label>
           <span>{t("contact.form_phone")}</span>
           <input type="tel" name="phone" autocomplete="tel" required />
         </label>

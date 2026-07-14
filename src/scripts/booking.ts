@@ -83,6 +83,7 @@ function mount(root: BookingRoot) {
   const slotsEl = root.querySelector<HTMLElement>("[data-booking-slots]");
   const guestEl = root.querySelector<HTMLElement>("[data-booking-guest]");
   const nameInput = root.querySelector<HTMLInputElement>("[data-booking-name]");
+  const emailInput = root.querySelector<HTMLInputElement>("[data-booking-email]");
   const phoneInput = root.querySelector<HTMLInputElement>("[data-booking-phone]");
   const selectedLabel = root.querySelector<HTMLElement>("[data-booking-selected-label]");
   const confirmBtn = root.querySelector<HTMLButtonElement>("[data-booking-confirm]");
@@ -97,6 +98,7 @@ function mount(root: BookingRoot) {
     !slotsEl ||
     !guestEl ||
     !nameInput ||
+    !emailInput ||
     !phoneInput ||
     !selectedLabel ||
     !confirmBtn
@@ -120,7 +122,12 @@ function mount(root: BookingRoot) {
   }
 
   function guestReady() {
-    return nameInput!.value.trim().length > 1 && phoneInput!.value.trim().length > 5;
+    const em = emailInput.value.trim();
+    return (
+      nameInput.value.trim().length > 1 &&
+      phoneInput.value.trim().length > 5 &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)
+    );
   }
 
   function syncConfirm() {
@@ -137,8 +144,9 @@ function mount(root: BookingRoot) {
     if (!hasDate) {
       selectedLabel!.textContent = needDate;
       selectedSlot = null;
-      nameInput!.value = "";
-      phoneInput!.value = "";
+      nameInput.value = "";
+      emailInput.value = "";
+      phoneInput.value = "";
     } else if (!hasSlot) {
       selectedLabel!.textContent = new Intl.DateTimeFormat(locale, {
         weekday: "long",
@@ -224,8 +232,9 @@ function mount(root: BookingRoot) {
         btn.addEventListener("click", () => {
           selectedDate = date;
           selectedSlot = null;
-          nameInput!.value = "";
-          phoneInput!.value = "";
+          nameInput.value = "";
+          emailInput.value = "";
+          phoneInput.value = "";
           setReveal(guestEl!, false);
           renderCalendar();
           renderSlots();
@@ -261,6 +270,7 @@ function mount(root: BookingRoot) {
   }
 
   nameInput.oninput = syncConfirm;
+  emailInput.oninput = syncConfirm;
   phoneInput.oninput = syncConfirm;
 
   const loadAvailability = async (day: Date) => {
@@ -293,6 +303,7 @@ function mount(root: BookingRoot) {
       return;
     }
     const name = nameInput.value.trim();
+    const guestEmail = emailInput.value.trim();
     const phone = phoneInput.value.trim();
     const dateLabel = new Intl.DateTimeFormat(locale, {
       weekday: "long",
@@ -312,6 +323,7 @@ function mount(root: BookingRoot) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          email: guestEmail,
           phone,
           date: ymd(selectedDate),
           slot: selectedSlot,
@@ -323,9 +335,10 @@ function mount(root: BookingRoot) {
         throw new Error(data.error || `HTTP ${res.status}`);
       }
       selectedLabel.textContent = locale.startsWith("en")
-        ? `Booked ${dateLabel} · ${timeLabel}${data.meetLink ? " · Meet link emailed to Danny" : ""}`
-        : `Agendado ${dateLabel} · ${timeLabel}${data.meetLink ? " · Meet enviado a Danny" : ""}`;
+        ? `Booked ${dateLabel} · ${timeLabel}. Confirmation + Meet sent to your email.`
+        : `Agendado ${dateLabel} · ${timeLabel}. Te envié confirmación y Meet por correo.`;
       nameInput.value = "";
+      emailInput.value = "";
       phoneInput.value = "";
       selectedSlot = null;
       await loadAvailability(selectedDate);
@@ -333,11 +346,17 @@ function mount(root: BookingRoot) {
       syncConfirm();
       const dialog = root.closest("dialog");
       if (dialog instanceof HTMLDialogElement) {
-        window.setTimeout(() => dialog.close(), 1200);
+        window.setTimeout(() => dialog.close(), 1600);
       }
     } catch (err) {
       // Fallback: open mailto so the lead is never lost offline
-      const subject = fillTemplate(subjectTpl, { date: dateLabel, time: timeLabel, name, phone });
+      const subject = fillTemplate(subjectTpl, {
+        date: dateLabel,
+        time: timeLabel,
+        name,
+        phone,
+        email: guestEmail,
+      });
       const body = fillTemplate(bodyTpl, {
         date: dateLabel,
         time: timeLabel,
@@ -345,6 +364,7 @@ function mount(root: BookingRoot) {
         via,
         name,
         phone,
+        email: guestEmail,
       });
       console.error(err);
       window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

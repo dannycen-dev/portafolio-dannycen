@@ -146,6 +146,10 @@ const locale = lang === "en" ? "en-US" : "es-MX";
                 <input type="text" name="guest-name" data-booking-name autocomplete="name" required />
               </label>
               <label>
+                <span>{t("booking.guest_email")}</span>
+                <input type="email" name="guest-email" data-booking-email autocomplete="email" required />
+              </label>
+              <label>
                 <span>{t("booking.guest_phone")}</span>
                 <input type="tel" name="guest-phone" data-booking-phone autocomplete="tel" required />
               </label>

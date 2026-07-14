@@ -75,10 +75,12 @@ export const ui = {
     "contact.form_lead":
       "Completa el formulario y yo me pongo en contacto contigo. No hace falta que me escribas primero a mi correo.",
     "contact.form_name": "Nombre",
+    "contact.form_email": "Email",
     "contact.form_phone": "Teléfono / WhatsApp",
     "contact.form_message": "Mensaje",
     "contact.form_submit": "Enviar mensaje",
     "contact.form_mail_subject": "Mensaje de {name}",
+    "contact.form_success": "Mensaje enviado. Te llegará una confirmación por correo.",
     "contact.modal_close": "Cerrar",
     "contact.meta":
       "Contacta a {name} en Mérida, Yucatán, México: automatización con IA, RevOps, datos y sistemas con menos fricción.",
@@ -95,10 +97,12 @@ export const ui = {
     "booking.need_time": "Elige un horario",
     "booking.your_details": "Tus datos",
     "booking.guest_name": "Nombre",
+    "booking.guest_email": "Email",
     "booking.guest_phone": "Teléfono / WhatsApp",
     "booking.mail_subject": "Cita — {name} · {date} a las {time}",
     "booking.mail_body":
-      "Nueva solicitud de cita\n\nNombre: {name}\nTeléfono: {phone}\nFecha: {date}\nHora: {time} ({tz})\nVía: {via}\n\n",
+      "Nueva solicitud de cita\n\nNombre: {name}\nEmail: {email}\nTeléfono: {phone}\nFecha: {date}\nHora: {time} ({tz})\nVía: {via}\n\n",
+    "booking.success": "Agendado {date} · {time}. Te envié la confirmación y el Meet por correo.",
     "booking.prev_month": "Mes anterior",
     "booking.next_month": "Mes siguiente",
     "footer.pages": "Páginas",
@@ -180,10 +184,12 @@ export const ui = {
     "contact.form_lead":
       "Fill in the form and I’ll get back to you. You don’t need to email me first.",
     "contact.form_name": "Name",
+    "contact.form_email": "Email",
     "contact.form_phone": "Phone / WhatsApp",
     "contact.form_message": "Message",
     "contact.form_submit": "Send message",
     "contact.form_mail_subject": "Message from {name}",
+    "contact.form_success": "Message sent. You’ll get a confirmation email shortly.",
     "contact.modal_close": "Close",
     "contact.meta":
       "Contact {name} in Mérida, Yucatán, Mexico: AI automation, RevOps, data, and lower-friction systems.",
@@ -200,10 +206,12 @@ export const ui = {
     "booking.need_time": "Pick a time slot",
     "booking.your_details": "Your details",
     "booking.guest_name": "Name",
+    "booking.guest_email": "Email",
     "booking.guest_phone": "Phone / WhatsApp",
     "booking.mail_subject": "Call — {name} · {date} at {time}",
     "booking.mail_body":
-      "New booking request\n\nName: {name}\nPhone: {phone}\nDate: {date}\nTime: {time} ({tz})\nVia: {via}\n\n",
+      "New booking request\n\nName: {name}\nEmail: {email}\nPhone: {phone}\nDate: {date}\nTime: {time} ({tz})\nVia: {via}\n\n",
+    "booking.success": "Booked {date} · {time}. I emailed you the confirmation and Meet link.",
     "booking.prev_month": "Previous month",
     "booking.next_month": "Next month",
     "footer.pages": "Pages",

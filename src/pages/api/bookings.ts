@@ -1,22 +1,28 @@
 import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import {
-  badRequest,
   corsHeaders,
+  formatBookingLabels,
+  isValidEmail,
   json,
   newId,
   parseSlots,
   readJson,
   type ApiEnv,
 } from "../../lib/api";
+import {
+  bookingOwnerEmail,
+  bookingVisitorEmail,
+} from "../../lib/email/templates";
 import { hasGoogleCreds } from "../../lib/google/auth";
 import { createCalendarEvent } from "../../lib/google/calendar";
-import { sendGmailNotify } from "../../lib/google/gmail";
+import { sendEmail } from "../../lib/google/gmail";
 
 export const prerender = false;
 
 type BookingBody = {
   name?: string;
+  email?: string;
   phone?: string;
   date?: string;
   slot?: string;
@@ -40,7 +46,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
   const date = url.searchParams.get("date");
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return badRequest("Query ?date=YYYY-MM-DD is required");
+    return json({ ok: false, error: "Query ?date=YYYY-MM-DD is required" }, 400, { headers });
   }
 
   const allSlots = parseSlots(e.BOOKING_SLOTS);
@@ -79,13 +85,19 @@ export const POST: APIRoute = async ({ request }) => {
   if (!body) return json({ ok: false, error: "Invalid JSON body" }, 400, { headers });
 
   const name = String(body.name || "").trim();
+  const email = String(body.email || "").trim().toLowerCase();
   const phone = String(body.phone || "").trim();
   const date = String(body.date || "").trim();
   const slot = String(body.slot || "").trim();
   const locale = String(body.locale || "es").trim();
 
-  if (!name || !phone || !date || !slot) {
-    return json({ ok: false, error: "name, phone, date and slot are required" }, 400, { headers });
+  if (!name || !email || !phone || !date || !slot) {
+    return json({ ok: false, error: "name, email, phone, date and slot are required" }, 400, {
+      headers,
+    });
+  }
+  if (!isValidEmail(email)) {
+    return json({ ok: false, error: "Invalid email" }, 400, { headers });
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(slot)) {
     return json({ ok: false, error: "Invalid date or slot format" }, 400, { headers });
@@ -108,9 +120,11 @@ export const POST: APIRoute = async ({ request }) => {
 
   const id = newId("bk");
   const timezone = e.BOOKING_TIMEZONE || "America/Merida";
+  const { dateLabel, timeLabel } = formatBookingLabels(date, slot, locale);
   let googleEventId: string | null = null;
   let meetLink: string | null = null;
   let warn: string | undefined;
+  const ownerTo = e.NOTIFY_TO_EMAIL || "dannycen.dev@gmail.com";
 
   if (hasGoogleCreds(e)) {
     try {
@@ -119,39 +133,60 @@ export const POST: APIRoute = async ({ request }) => {
         description: [
           `Reserva desde dannydev.space`,
           `Nombre: ${name}`,
+          `Email: ${email}`,
           `Teléfono / WhatsApp: ${phone}`,
-          `Fecha: ${date}`,
-          `Hora: ${slot} (${timezone})`,
+          `Fecha: ${dateLabel}`,
+          `Hora: ${timeLabel} (${timezone})`,
           `Locale: ${locale}`,
           `Booking ID: ${id}`,
         ].join("\n"),
         date,
         slot,
+        attendeeEmail: email,
       });
       googleEventId = event.eventId;
       meetLink = event.meetLink || null;
 
+      const visitor = bookingVisitorEmail({
+        locale,
+        name,
+        dateLabel,
+        timeLabel,
+        timezone,
+        phone,
+        meetLink,
+        calendarLink: event.htmlLink,
+      });
+      const owner = bookingOwnerEmail({
+        name,
+        email,
+        phone,
+        dateLabel,
+        timeLabel,
+        timezone,
+        meetLink,
+        bookingId: id,
+      });
+
       try {
-        await sendGmailNotify(e, {
+        await sendEmail(e, {
+          to: email,
+          subject: locale.startsWith("en")
+            ? `Confirmed · ${dateLabel} · ${timeLabel}`
+            : `Cita confirmada · ${dateLabel} · ${timeLabel}`,
+          html: visitor.html,
+          text: visitor.text,
+          replyTo: ownerTo,
+        });
+        await sendEmail(e, {
+          to: ownerTo,
           subject: `Nueva cita · ${date} ${slot} · ${name}`,
-          bodyText: [
-            "Nueva cita agendada en dannydev.space",
-            "",
-            `ID: ${id}`,
-            `Nombre: ${name}`,
-            `Teléfono: ${phone}`,
-            `Fecha: ${date}`,
-            `Hora: ${slot} (${timezone})`,
-            meetLink ? `Meet: ${meetLink}` : "",
-            googleEventId ? `Calendar event: ${googleEventId}` : "",
-          ]
-            .filter(Boolean)
-            .join("\n"),
-          replyToName: name,
-          replyToPhone: phone,
+          html: owner.html,
+          text: owner.text,
+          replyTo: email,
         });
       } catch (err) {
-        warn = `Calendar OK; Gmail notify failed: ${err instanceof Error ? err.message : String(err)}`;
+        warn = `Calendar OK; email failed: ${err instanceof Error ? err.message : String(err)}`;
       }
     } catch (err) {
       warn = `Saved locally; Google sync deferred: ${err instanceof Error ? err.message : String(err)}`;
@@ -162,17 +197,27 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     await e.DB.prepare(
-      `INSERT INTO bookings (id, name, phone, date, slot, timezone, locale, status, google_event_id, meet_link)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`,
+      `INSERT INTO bookings (id, name, email, phone, date, slot, timezone, locale, status, google_event_id, meet_link)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`,
     )
-      .bind(id, name, phone, date, slot, timezone, locale, googleEventId, meetLink)
+      .bind(id, name, email, phone, date, slot, timezone, locale, googleEventId, meetLink)
       .run();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     if (/UNIQUE/i.test(msg)) {
       return json({ ok: false, error: "Slot already booked" }, 409, { headers });
     }
-    return json({ ok: false, error: "Could not save booking", details: msg }, 500, { headers });
+    // Fallback if migration not applied yet (no email column)
+    if (/no such column: email/i.test(msg)) {
+      await e.DB.prepare(
+        `INSERT INTO bookings (id, name, phone, date, slot, timezone, locale, status, google_event_id, meet_link)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`,
+      )
+        .bind(id, name, phone, date, slot, timezone, locale, googleEventId, meetLink)
+        .run();
+    } else {
+      return json({ ok: false, error: "Could not save booking", details: msg }, 500, { headers });
+    }
   }
 
   return json(

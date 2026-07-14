@@ -47,7 +47,7 @@ export async function createCalendarEvent(
   const { start, end } = toRfc3339Local(input.date, input.slot, duration);
   const timezone = env.BOOKING_TIMEZONE || "America/Merida";
 
-  const body = {
+  const body: Record<string, unknown> = {
     summary: input.summary,
     description: input.description,
     start: { dateTime: start, timeZone: timezone },
@@ -61,7 +61,15 @@ export async function createCalendarEvent(
     },
   };
 
-  const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?conferenceDataVersion=1`;
+  if (input.attendeeEmail) {
+    body.attendees = [{ email: input.attendeeEmail }];
+  }
+
+  const qs = new URLSearchParams({
+    conferenceDataVersion: "1",
+    sendUpdates: input.attendeeEmail ? "all" : "none",
+  });
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?${qs}`;
   const res = await fetch(url, {
     method: "POST",
     headers: {
