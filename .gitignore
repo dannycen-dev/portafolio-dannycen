@@ -20,6 +20,11 @@ pnpm-debug.log*
 .dev.vars
 .wrangler/
 
+# Google OAuth client downloads (never commit)
+client_secret*.json
+*-credentials.json
+credentials.json
+
 # local tooling / QA dumps
 .cursor/
 dogfood-output/
