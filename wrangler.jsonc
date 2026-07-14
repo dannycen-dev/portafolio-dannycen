@@ -6,6 +6,10 @@
   "main": "@astrojs/cloudflare/entrypoints/server",
   "workers_dev": true,
   "preview_urls": true,
+  "routes": [
+    { "pattern": "dannydev.space", "custom_domain": true },
+    { "pattern": "www.dannydev.space", "custom_domain": true }
+  ],
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist/client",
