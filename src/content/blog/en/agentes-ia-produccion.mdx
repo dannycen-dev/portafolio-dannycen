@@ -1,0 +1,29 @@
+---
+title: "AI agents that actually ship to production"
+description: "How I design and implement agents and chatbots with OpenAI, Claude, and Gemini connected to CRM and WhatsApp."
+summary: "From demo to real channel: architecture, guardrails, and metrics for agents that handle leads without breaking sales flow."
+pubDate: 2026-07-08
+tags: ["AI", "Agents", "Chatbots", "OpenAI"]
+accent: "#1B6B63"
+category: "Artificial intelligence"
+---
+
+## Beyond a pretty prompt
+
+A production agent isn’t a loose chat. It’s a system with business memory, tools (APIs, CRM, calendars), and clear limits on what it can and cannot do.
+
+I combine models like **OpenAI, Claude, and Gemini** with orchestration (n8n/Make or code) so the agent can:
+
+- qualify leads
+- answer FAQs with company context
+- create CRM tasks or tickets
+- escalate to a human when uncertainty is high
+
+## What every delivery protects
+
+1. **Business brief** — goal, tone, languages, hours
+2. **Scoped tools** — only the APIs you need
+3. **Observability** — logs, sample chats, handoff rate
+4. **Weekly iteration** — prompts and flows tuned with real data
+
+If your team burns hours on WhatsApp or inbox triage, a well-integrated agent is often the first measurable win.

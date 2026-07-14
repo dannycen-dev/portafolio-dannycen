@@ -1,0 +1,410 @@
+---
+/**
+ * Decorative Yucatán night-sky: soft stars, occasional shooting star,
+ * and horizon with cenote reflection. Aria-hidden; SEO copy stays in hero text.
+ */
+
+interface Props {
+  captionPrimary?: string;
+  captionSecondary?: string;
+}
+
+const {
+  captionPrimary = "Cielo de Yucatán",
+  captionSecondary = "Horizonte · cenote",
+} = Astro.props;
+---
+
+<div class="sky" data-sky aria-hidden="true">
+  <div
+    class="sky__bg"
+    style="background:radial-gradient(80% 50% at 50% 78%,rgba(27,107,99,.4),transparent 62%),linear-gradient(180deg,#07131a 0%,#0c2a2f 52%,#123a36 100%)"
+  ></div>
+  <canvas class="sky__canvas" data-sky-canvas></canvas>
+  <svg
+    class="sky__svg"
+    data-sky-svg
+    viewBox="0 0 400 700"
+    preserveAspectRatio="xMidYMax slice"
+  >
+    <defs>
+      <radialGradient id="cenoteGlow" cx="50%" cy="72%" r="48%">
+        <stop offset="0%" stop-color="#1b6b63" stop-opacity="0.55" />
+        <stop offset="55%" stop-color="#1b6b63" stop-opacity="0.18" />
+        <stop offset="100%" stop-color="#1b6b63" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#1b6b63" stop-opacity="0.45" />
+        <stop offset="45%" stop-color="#0c2a2f" stop-opacity="0.75" />
+        <stop offset="100%" stop-color="#07131a" stop-opacity="0.95" />
+      </linearGradient>
+      <linearGradient id="horizonMist" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#cfe3e0" stop-opacity="0" />
+        <stop offset="40%" stop-color="#c8a45c" stop-opacity="0.22" />
+        <stop offset="100%" stop-color="#1b6b63" stop-opacity="0.35" />
+      </linearGradient>
+      <clipPath id="waterClip">
+        <ellipse cx="200" cy="545" rx="168" ry="62" />
+      </clipPath>
+    </defs>
+
+    <!-- Oversized so slice never shows side gaps -->
+    <rect class="sky__glow" x="-80" y="0" width="560" height="700" fill="url(#cenoteGlow)" />
+
+    <!-- Soft gold horizon veil -->
+    <rect class="sky__mist" x="-80" y="420" width="560" height="110" fill="url(#horizonMist)" />
+
+    <!-- Distant treeline silhouette (full-bleed) -->
+    <path
+      class="sky__treeline"
+      d="M-80 512 C-20 498 20 505 60 492 C110 478 150 498 190 488 C230 478 270 498 320 488 C370 480 420 498 480 492 L480 580 L-80 580 Z"
+      fill="#07131a"
+      opacity="0.72"
+    />
+    <path
+      class="sky__treeline sky__treeline--near"
+      d="M-80 528 C-10 516 40 526 90 518 C140 508 180 528 230 520 C280 512 330 530 390 524 C440 518 480 528 480 528 L480 620 L-80 620 Z"
+      fill="#0a1c22"
+      opacity="0.9"
+    />
+
+    <!-- Horizon line -->
+    <path
+      class="sky__horizon-line"
+      d="M-60 508 C40 496 120 514 200 504 C290 492 370 510 460 500"
+      fill="none"
+      stroke="#c8a45c"
+      stroke-width="1.1"
+      stroke-opacity="0.55"
+      stroke-linecap="round"
+    />
+
+    <!-- Cenote water surface -->
+    <g class="sky__cenote">
+      <ellipse cx="200" cy="545" rx="168" ry="62" fill="url(#waterGrad)" />
+      <ellipse
+        cx="200"
+        cy="545"
+        rx="168"
+        ry="62"
+        fill="none"
+        stroke="#cfe3e0"
+        stroke-opacity="0.28"
+        stroke-width="1.2"
+      />
+      <ellipse
+        cx="200"
+        cy="538"
+        rx="120"
+        ry="28"
+        fill="#f4efe4"
+        opacity="0.06"
+        class="sky__shimmer"
+      />
+      <g clip-path="url(#waterClip)" class="sky__reflection">
+        <circle cx="168" cy="528" r="1.4" fill="#f4efe4" opacity="0.45" />
+        <circle cx="212" cy="542" r="1.8" fill="#c8a45c" opacity="0.35" />
+        <circle cx="248" cy="534" r="1.2" fill="#f4efe4" opacity="0.32" />
+        <circle cx="190" cy="556" r="1" fill="#cfe3e0" opacity="0.4" />
+        <circle cx="230" cy="560" r="1.3" fill="#f4efe4" opacity="0.28" />
+        <path
+          d="M140 548 C175 540 225 540 260 548"
+          fill="none"
+          stroke="#1b6b63"
+          stroke-width="8"
+          stroke-opacity="0.25"
+          stroke-linecap="round"
+        />
+      </g>
+    </g>
+  </svg>
+  <div class="sky__caption">
+    <span>{captionPrimary}</span>
+    <span>{captionSecondary}</span>
+  </div>
+</div>
+
+<script>
+  /** @type {WeakMap<Element, () => void>} */
+  const cleanups = new WeakMap();
+
+  function initSky() {
+    const root = document.querySelector("[data-sky]");
+    if (!root) return;
+
+    const prev = cleanups.get(root);
+    if (prev) prev();
+
+    const canvas = root.querySelector("[data-sky-canvas]");
+    if (!(canvas instanceof HTMLCanvasElement)) return;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    /**
+     * @typedef {{ x: number; y: number; r: number; base: number; amp: number; phase: number; period: number }} Star
+     * @typedef {{ x: number; y: number; vx: number; vy: number; life: number; maxLife: number; len: number }} Meteor
+     */
+    /** @type {Star[]} */
+    let stars = [];
+    /** @type {Meteor | null} */
+    let meteor = null;
+    let nextMeteorAt = 0;
+    let lastT = 0;
+    let raf = 0;
+    let w = 0;
+    let h = 0;
+
+    const scheduleMeteor = (now) => {
+      nextMeteorAt = now + 10000 + Math.random() * 12000;
+    };
+
+    const spawnMeteor = () => {
+      const fromRight = Math.random() > 0.45;
+      const startX = fromRight ? w * (0.35 + Math.random() * 0.55) : w * Math.random() * 0.45;
+      const startY = h * (0.04 + Math.random() * 0.28);
+      const speed = 0.32 + Math.random() * 0.22;
+      const angle = fromRight
+        ? Math.PI * (0.12 + Math.random() * 0.12)
+        : Math.PI * (0.08 + Math.random() * 0.1);
+      meteor = {
+        x: startX,
+        y: startY,
+        vx: Math.cos(angle) * speed * (fromRight ? -1 : 1),
+        vy: Math.sin(angle) * speed,
+        life: 0,
+        maxLife: 780 + Math.random() * 420,
+        len: 28 + Math.random() * 36,
+      };
+    };
+
+    const resize = () => {
+      const rect = root.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = Math.max(1, Math.floor(rect.width));
+      h = Math.max(1, Math.floor(rect.height));
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const count = Math.floor((w * h) / 2800);
+      stars = Array.from({ length: count }, () => {
+        const twinkles = Math.random() < 0.62;
+        return {
+          x: Math.random() * w,
+          y: Math.random() * h * 0.58,
+          r: Math.random() * 1.25 + 0.25,
+          base: 0.38 + Math.random() * 0.4,
+          // Clearer pulse, still slow enough to feel natural
+          amp: twinkles ? 0.18 + Math.random() * 0.22 : 0.04 + Math.random() * 0.06,
+          phase: Math.random() * Math.PI * 2,
+          // ~3.5–9s cycle
+          period: 3500 + Math.random() * 5500,
+        };
+      });
+    };
+
+    /** @param {number} t */
+    const draw = (t) => {
+      const dt = lastT ? Math.min(32, t - lastT) : 16.7;
+      lastT = t;
+      ctx.clearRect(0, 0, w, h);
+
+      for (const star of stars) {
+        let alpha = star.base;
+        if (!reduce) {
+          const wave = Math.sin((t / star.period) * Math.PI * 2 + star.phase);
+          alpha = star.base + star.amp * wave;
+        }
+
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(244, 239, 228, ${Math.max(0.2, Math.min(1, alpha))})`;
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (!reduce) {
+        if (!meteor && t >= nextMeteorAt) {
+          spawnMeteor();
+          scheduleMeteor(t);
+        }
+
+        if (meteor) {
+          meteor.life += dt;
+          meteor.x += meteor.vx * dt;
+          meteor.y += meteor.vy * dt;
+
+          const progress = meteor.life / meteor.maxLife;
+          const fade =
+            progress < 0.15
+              ? progress / 0.15
+              : progress > 0.55
+                ? Math.max(0, 1 - (progress - 0.55) / 0.45)
+                : 1;
+
+          const tx = meteor.x - meteor.vx * meteor.len;
+          const ty = meteor.y - meteor.vy * meteor.len;
+          const grad = ctx.createLinearGradient(tx, ty, meteor.x, meteor.y);
+          grad.addColorStop(0, "rgba(244, 239, 228, 0)");
+          grad.addColorStop(0.55, `rgba(207, 227, 224, ${0.35 * fade})`);
+          grad.addColorStop(1, `rgba(244, 239, 228, ${0.9 * fade})`);
+
+          ctx.beginPath();
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 1.35;
+          ctx.lineCap = "round";
+          ctx.moveTo(tx, ty);
+          ctx.lineTo(meteor.x, meteor.y);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(244, 239, 228, ${0.85 * fade})`;
+          ctx.arc(meteor.x, meteor.y, 1.4, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (
+            meteor.life >= meteor.maxLife ||
+            meteor.x < -40 ||
+            meteor.x > w + 40 ||
+            meteor.y > h * 0.7
+          ) {
+            meteor = null;
+          }
+        }
+
+        raf = requestAnimationFrame(draw);
+      }
+    };
+
+    resize();
+    if (!reduce) {
+      nextMeteorAt = performance.now() + 3500 + Math.random() * 4500;
+      raf = requestAnimationFrame(draw);
+    } else {
+      draw(0);
+    }
+
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      lastT = 0;
+      resize();
+      if (!reduce) {
+        raf = requestAnimationFrame(draw);
+      } else {
+        draw(0);
+      }
+    });
+    ro.observe(root);
+
+    const cleanup = () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      meteor = null;
+    };
+    cleanups.set(root, cleanup);
+
+    document.addEventListener("astro:before-swap", cleanup, { once: true });
+  }
+
+  initSky();
+  document.addEventListener("astro:page-load", initSky);
+</script>
+
+<style>
+  .sky {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    isolation: isolate;
+    pointer-events: none;
+  }
+
+  .sky__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(80% 50% at 50% 78%, rgba(27, 107, 99, 0.4), transparent 62%),
+      linear-gradient(180deg, #07131a 0%, #0c2a2f 52%, #123a36 100%);
+  }
+
+  .sky__canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .sky__svg {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  .sky__glow {
+    pointer-events: none;
+  }
+
+  .sky__horizon-line {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+
+  .sky__treeline,
+  .sky__cenote {
+    opacity: 1;
+  }
+
+  .sky__shimmer {
+    animation: shimmer 5.5s ease-in-out infinite;
+    transform-origin: 200px 538px;
+  }
+
+  .sky__caption {
+    position: absolute;
+    z-index: 3;
+    left: 0.9rem;
+    bottom: 0.9rem;
+    display: grid;
+    gap: 0.15rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(244, 239, 228, 0.78);
+    pointer-events: none;
+  }
+
+  .sky__caption span:first-child {
+    color: #f4efe4;
+    font-weight: 600;
+  }
+
+  @keyframes shimmer {
+    0%,
+    100% {
+      opacity: 0.04;
+      transform: scaleX(0.92) translateX(-6px);
+    }
+    50% {
+      opacity: 0.1;
+      transform: scaleX(1.05) translateX(8px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sky__shimmer {
+      animation: none;
+      opacity: 0.07;
+    }
+  }
+</style>

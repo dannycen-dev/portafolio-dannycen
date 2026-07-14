@@ -1,14 +1,15 @@
 :root {
+  /* Contrast tuned for WCAG AA on light mist backgrounds */
   --bg: #eef1ef;
   --bg-elevated: #f7f8f7;
-  --ink: #121614;
-  --ink-soft: #3d4640;
-  --muted: #6b746e;
-  --line: rgba(18, 22, 20, 0.12);
-  --accent: #1b6b63;
-  --accent-deep: #0f4a45;
-  --accent-soft: #d5e8e5;
-  --highlight: #c8a45c;
+  --ink: #101412;
+  --ink-soft: #2a322e;
+  --muted: #4d5650;
+  --line: rgba(16, 20, 18, 0.16);
+  --accent: #155f58;
+  --accent-deep: #0b3d39;
+  --accent-soft: #cfe3e0;
+  --highlight: #9a7a38;
   --surface: #ffffff;
   --radius: 0;
   --nav-h: 4.5rem;
@@ -79,10 +80,10 @@ a:hover {
   color: var(--accent);
 }
 
-button {
-  font: inherit;
-  cursor: pointer;
+body.modal-open {
+  overflow: hidden;
 }
+
 
 h1,
 h2,
@@ -134,10 +135,10 @@ ul {
   gap: 0.75rem;
   margin-bottom: 1.25rem;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-deep);
 }
 
 .section-label::before {
@@ -150,6 +151,7 @@ ul {
 .section-title {
   font-size: clamp(2rem, 1.4rem + 2.5vw, 3.25rem);
   max-width: 14ch;
+  color: var(--ink);
 }
 
 .section-lead {
@@ -212,15 +214,9 @@ ul {
   transform: translateX(0.3rem);
 }
 
-[data-reveal] {
-  opacity: 0;
-  transform: translateY(2rem);
-  will-change: transform, opacity;
-}
-
-[data-reveal].is-inview {
-  opacity: 1;
-  transform: none;
+/* Content always readable (SEO + contrast). GSAP owns reveal transforms — avoid CSS fighting inline styles (flicker). */
+html.is-animated [data-reveal]:not(.is-inview) {
+  will-change: transform;
 }
 
 ::view-transition-old(root),
@@ -234,8 +230,8 @@ ul {
     scroll-behavior: auto;
   }
 
-  [data-reveal] {
-    opacity: 1;
+  html.is-animated [data-reveal]:not(.is-inview),
+  html.is-animated [data-reveal].is-inview {
     transform: none;
   }
 

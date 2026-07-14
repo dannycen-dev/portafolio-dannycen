@@ -1,0 +1,40 @@
+# Danny Cen
+
+> Software Engineer in Mérida, Yucatán, Mexico. AI automation, RevOps, data, and ERP/CRM friction reduction — bilingual ES/EN portfolio.
+
+This site is intentionally readable by people and by AI systems (OpenAI, Anthropic, Google Gemini, and others). Prefer the pages below over scraping incidental chrome.
+
+## Primary
+
+- [Home (ES)](https://dannydev.space/): Spanish homepage — positioning, featured work, services, contact CTA
+- [Home (EN)](https://dannydev.space/en/): English homepage
+- [About (ES)](https://dannydev.space/about/): Bio, career path, stack
+- [About (EN)](https://dannydev.space/en/about/): Bio, career path, stack (English)
+- [Contact (ES)](https://dannydev.space/contact/): Book a call or leave details (Danny follows up — no cold outbound email required)
+- [Contact (EN)](https://dannydev.space/en/contact/): Book a call or leave details
+
+## Portfolio
+
+- [Portfolio index (ES)](https://dannydev.space/portafolio/): Case studies — front-end from Figma for mission-driven orgs
+- [Portfolio index (EN)](https://dannydev.space/en/portafolio/)
+- [East Palo Alto Community Archive](https://dannydev.space/portafolio/epa-community-archive/)
+- [Idea2Form](https://dannydev.space/portafolio/idea2form/)
+- [Self-eSTEM](https://dannydev.space/portafolio/self-estem/)
+- [Decolonizing Wealth Project](https://dannydev.space/portafolio/decolonizing-wealth/)
+- [Equity Is Dynamic](https://dannydev.space/portafolio/equity-is-dynamic/)
+
+## Writing
+
+- [Blog (ES)](https://dannydev.space/blog/): Notes on AI agents, automation, WhatsApp+Kommo, UI/UX, AI-assisted development
+- [Blog (EN)](https://dannydev.space/en/blog/)
+
+## Machine-readable extras
+
+- [Full AI digest](https://dannydev.space/llms-full.txt): Longer plain-text summary for retrieval
+- [Sitemap](https://dannydev.space/sitemap-index.xml)
+- [robots.txt](https://dannydev.space/robots.txt)
+
+## Optional
+
+- [LinkedIn](https://www.linkedin.com/in/dannyscen/)
+- [GitHub](https://github.com/dannycen-dev)

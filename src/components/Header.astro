@@ -1,12 +1,18 @@
 ---
-import { nav, site } from "../data/site";
+import { site } from "../data/site";
+import { getLangFromUrl, localePath, switchLangPath, type Lang } from "../i18n/utils";
+import { getNav, useTranslations } from "../i18n/ui";
 
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const nav = getNav(lang);
 const pathname = Astro.url.pathname;
+const otherLang: Lang = lang === "es" ? "en" : "es";
 ---
 
-<header class="header" transition:persist>
+<header class="header">
   <div class="header__inner container">
-    <a class="header__brand" href="/" aria-label={`${site.name} — inicio`}>
+    <a class="header__brand" href={localePath(lang)} aria-label={`${site.name} — ${t("nav.home")}`}>
       {site.name}
     </a>
 
@@ -17,7 +23,7 @@ const pathname = Astro.url.pathname;
       aria-controls="site-nav"
       data-nav-toggle
     >
-      <span class="sr-only">Menú</span>
+      <span class="sr-only">{t("nav.menu")}</span>
       <span class="header__toggle-lines" aria-hidden="true"></span>
     </button>
 
@@ -25,19 +31,32 @@ const pathname = Astro.url.pathname;
       <ul>
         {
           nav.map((item) => {
+            const href = localePath(lang, item.path);
+            const norm = (p: string) => p.replace(/\/+$/, "") || "/";
             const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+              item.path === ""
+                ? norm(pathname) === norm(href)
+                : norm(pathname) === norm(href) || norm(pathname).startsWith(`${norm(href)}/`);
             return (
               <li>
-                <a href={item.href} aria-current={active ? "page" : undefined}>
+                <a href={href} aria-current={active ? "page" : undefined}>
                   {item.label}
                 </a>
               </li>
             );
           })
         }
+        <li class="header__lang">
+          <a
+            href={switchLangPath(Astro.url, otherLang)}
+            data-lang-switch={otherLang}
+            hreflang={otherLang === "en" ? "en-US" : "es-MX"}
+            lang={otherLang === "en" ? "en-US" : "es-MX"}
+            aria-label={t("nav.lang")}
+          >
+            {otherLang === "en" ? "EN" : "ES"}
+          </a>
+        </li>
       </ul>
     </nav>
   </div>
@@ -45,9 +64,9 @@ const pathname = Astro.url.pathname;
 
 <script>
   function bindNav() {
-    const toggle = document.querySelector<HTMLButtonElement>("[data-nav-toggle]");
-    const nav = document.querySelector<HTMLElement>("[data-nav]");
-    if (!toggle || !nav) return;
+    const toggle = document.querySelector("[data-nav-toggle]");
+    const nav = document.querySelector("[data-nav]");
+    if (!(toggle instanceof HTMLButtonElement) || !(nav instanceof HTMLElement)) return;
 
     const close = () => {
       toggle.setAttribute("aria-expanded", "false");
@@ -79,8 +98,7 @@ const pathname = Astro.url.pathname;
     height: var(--nav-h);
     backdrop-filter: blur(14px);
     background: rgba(238, 241, 239, 0.78);
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.3s var(--ease-out);
+    border-bottom: 1px solid var(--line);
   }
 
   .header__inner {
@@ -100,12 +118,13 @@ const pathname = Astro.url.pathname;
 
   .header__nav ul {
     display: flex;
+    align-items: center;
     gap: clamp(1.25rem, 3vw, 2rem);
   }
 
   .header__nav a {
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
     color: var(--ink-soft);
   }
@@ -113,6 +132,14 @@ const pathname = Astro.url.pathname;
   .header__nav a[aria-current="page"],
   .header__nav a:hover {
     color: var(--ink);
+  }
+
+  .header__lang a {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.1rem;
   }
 
   .header__toggle {
@@ -189,6 +216,7 @@ const pathname = Astro.url.pathname;
 
     .header__nav ul {
       flex-direction: column;
+      align-items: flex-start;
       gap: 1.25rem;
     }
 
@@ -197,6 +225,10 @@ const pathname = Astro.url.pathname;
       font-size: 1.75rem;
       font-weight: 650;
       color: var(--ink);
+    }
+
+    .header__lang a {
+      font-size: 1.1rem;
     }
   }
 </style>

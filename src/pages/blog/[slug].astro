@@ -1,0 +1,157 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { site } from "../../data/site";
+import { getLangFromUrl, localePath } from "../../i18n/utils";
+import { useTranslations } from "../../i18n/ui";
+import { blogSlug } from "../../i18n/blog";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("blog");
+  return entries
+    .filter((entry) => entry.id.startsWith("es/") && !entry.data.draft)
+    .map((entry) => ({
+      params: { slug: blogSlug(entry.id) },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { data } = entry;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const dateLocale = lang === "en" ? "en-US" : "es-MX";
+const date = data.pubDate.toLocaleDateString(dateLocale, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+const title = `${data.title} — ${t("blog.label")} · ${site.name}`;
+---
+
+<BaseLayout title={title} description={data.description}>
+  <article class="post section">
+    <div class="container post__inner">
+      <header class="post__header">
+        <p class="section-label">
+          <a href={localePath(lang, "blog")}>{t("blog.label")}</a>
+          <span aria-hidden="true"> / </span>
+          {data.category}
+        </p>
+        <h1 class="section-title">{data.title}</h1>
+        <p class="section-lead">{data.summary}</p>
+        <p class="post__date">
+          <time datetime={data.pubDate.toISOString()}>{date}</time>
+        </p>
+      </header>
+
+      <div class="post__hero" style={`--accent:${data.accent}`} aria-hidden="true">
+        <span>{data.category}</span>
+      </div>
+
+      <div class="post__body prose">
+        <Content />
+      </div>
+
+      <ul class="post__tags">
+        {data.tags.map((tag) => <li>{tag}</li>)}
+      </ul>
+
+      <p class="post__back">
+        <a class="link-arrow" href={localePath(lang, "blog")}>← {t("blog.back")}</a>
+      </p>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post__inner {
+    max-width: 44rem;
+  }
+
+  .post__header .section-label a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .post__header .section-label a:hover {
+    color: var(--accent);
+  }
+
+  .post__date {
+    margin-top: 1.25rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .post__hero {
+    display: grid;
+    place-items: end start;
+    margin: clamp(1.75rem, 4vw, 2.5rem) 0;
+    padding: 1.25rem;
+    min-height: 10rem;
+    background:
+      radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.16), transparent 42%),
+      linear-gradient(145deg, color-mix(in srgb, var(--accent) 72%, white), var(--accent));
+    border-block: 1px solid var(--line);
+  }
+
+  .post__hero span {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .prose :global(h2) {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: clamp(1.3rem, 1.05rem + 0.7vw, 1.6rem);
+    color: var(--accent-deep);
+  }
+
+  .prose :global(p),
+  .prose :global(li) {
+    color: var(--ink-soft);
+  }
+
+  .prose :global(p + p),
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin-top: 0.9rem;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.15rem;
+  }
+
+  .prose :global(li + li) {
+    margin-top: 0.4rem;
+  }
+
+  .prose :global(strong) {
+    color: var(--ink);
+  }
+
+  .post__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 1rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .post__tags li {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-deep);
+  }
+
+  .post__back {
+    margin-top: 1.75rem;
+  }
+</style>

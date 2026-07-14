@@ -1,0 +1,174 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { site } from "../../../data/site";
+import { getLangFromUrl, localePath, portfolioSlug } from "../../../i18n/utils";
+import { useTranslations } from "../../../i18n/ui";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("portafolio");
+  return entries
+    .filter((entry) => entry.id.startsWith("en/"))
+    .map((entry) => ({
+      params: { slug: portfolioSlug(entry.id) },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { data } = entry;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const title = `${data.title} — ${t("portfolio.label")} · ${site.name}`;
+---
+
+<BaseLayout title={title} description={data.description}>
+  <article class="case section">
+    <div class="container case__inner">
+      <header class="case__header">
+        <p class="section-label">
+          <a href={localePath(lang, "portafolio")}>{t("portfolio.label")}</a>
+          <span aria-hidden="true"> / </span>
+          {data.client}
+        </p>
+        <h1 class="section-title">{data.title}</h1>
+        <p class="section-lead">{data.summary}</p>
+        <ul class="case__meta">
+          <li><span>{t("portfolio.role")}</span> {data.role}</li>
+          <li><span>{t("portfolio.studio")}</span> {data.studio}</li>
+          {data.year && <li><span>{t("portfolio.period")}</span> {data.year}</li>}
+        </ul>
+        <div class="case__actions">
+          <a class="btn" href={data.url} target="_blank" rel="noopener noreferrer">
+            {t("portfolio.visit")}
+          </a>
+          <a class="btn btn--ghost" href={localePath(lang, "portafolio")}>{t("portfolio.back")}</a>
+        </div>
+      </header>
+
+      <figure class="case__cover" style={`--accent:${data.accent}`}>
+        <img
+          src={data.cover}
+          alt={`${data.title}`}
+          width="1440"
+          height="900"
+          loading="eager"
+        />
+      </figure>
+
+      <div class="case__body prose">
+        <Content />
+      </div>
+
+      <ul class="case__tags">
+        {data.tags.map((tag) => <li>{tag}</li>)}
+      </ul>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .case__inner {
+    max-width: 48rem;
+  }
+
+  .case__header .section-label a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .case__header .section-label a:hover {
+    color: var(--accent);
+  }
+
+  .case__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.75rem;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  .case__meta span {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .case__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  .case__cover {
+    margin: clamp(2rem, 5vw, 3rem) 0;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--accent) 35%, var(--bg));
+    border-block: 1px solid var(--line);
+  }
+
+  .case__cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  .prose :global(h2) {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: clamp(1.35rem, 1.1rem + 0.8vw, 1.7rem);
+    color: var(--accent-deep);
+  }
+
+  .prose :global(p),
+  .prose :global(li) {
+    color: var(--ink-soft);
+  }
+
+  .prose :global(p + p),
+  .prose :global(ul) {
+    margin-top: 0.9rem;
+  }
+
+  .prose :global(ul) {
+    padding-left: 1.15rem;
+  }
+
+  .prose :global(li + li) {
+    margin-top: 0.4rem;
+  }
+
+  .prose :global(a) {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .prose :global(strong) {
+    color: var(--ink);
+  }
+
+  .case__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 1rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .case__tags li {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-deep);
+  }
+</style>

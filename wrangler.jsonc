@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "dannydev-portfolio",
+  "compatibility_date": "2026-07-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist/client",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "PUBLIC_SITE_URL": "https://dannydev.space",
+    "BOOKING_TIMEZONE": "America/Merida",
+    "BOOKING_SLOTS": "09:00,10:00,11:30,14:00,15:30,17:00",
+    "BOOKING_DURATION_MIN": "30",
+    "NOTIFY_TO_EMAIL": "dannycen.dev@gmail.com",
+    "GOOGLE_CALENDAR_ID": "primary"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dannydev-contact",
+      "database_id": "6e788546-b25d-4528-9a57-156aa6398aa4",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

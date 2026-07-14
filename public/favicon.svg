@@ -1,5 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" fill="#121614"/>
-  <path d="M16 44V20h10.8c6.2 0 10.2 3.4 10.2 9.1 0 5.8-4.2 9.3-10.5 9.3H23.4V44H16zm7.4-12.3h3c3 0 4.8-1.5 4.8-4s-1.7-3.9-4.7-3.9h-3.1v7.9zM40.2 44l8.6-24h7.1L46.6 44h-6.4z" fill="#EEF1EF"/>
-  <circle cx="50" cy="18" r="4" fill="#1B6B63"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="DC">
+  <title>DC</title>
+  <rect width="64" height="64" fill="#101412"/>
+  <!--
+    Monogram DC · Syne-inspired display weight:
+    geometric stems, tight tracking, site mist (#EEF1EF) on ink (#101412).
+    Paths (not <text>) so the favicon stays crisp without font loading.
+  -->
+  <g fill="#EEF1EF" transform="translate(0 1)">
+    <!-- D -->
+    <path d="M12 13h12.4c7.55 0 12.35 4.2 12.35 11.55S31.95 36.1 24.4 36.1H12V13zm6.6 5.9v11.3h5.55c3.55 0 5.7-1.85 5.7-5.65s-2.15-5.65-5.7-5.65H18.6z"/>
+    <!-- C — tight gap after D like Syne display tracking -->
+    <path d="M52.4 19.1c-1.2-2.25-3.7-3.9-7.05-3.9-5.7 0-9.55 4.15-9.55 10.5s3.85 10.5 9.55 10.5c3.35 0 5.85-1.55 7.15-3.8l-5.05-2.85c-.55.85-1.4 1.45-2.25 1.45-2.05 0-3.4-1.75-3.4-5.3s1.35-5.3 3.4-5.3c.9 0 1.75.6 2.25 1.45l4.95-2.75z"/>
+  </g>
+  <rect x="50" y="12" width="3.5" height="3.5" fill="#155F58"/>
 </svg>

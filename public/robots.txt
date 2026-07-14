@@ -1,0 +1,47 @@
+# Allow traditional and AI search / retrieval crawlers.
+# Danny Cen — https://dannydev.space
+
+User-agent: *
+Allow: /
+
+# OpenAI (ChatGPT search + training + user fetches)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic (Claude search + training + user fetches)
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+# Google Gemini / Vertex AI grounding (separate from Googlebot Search)
+User-agent: Google-Extended
+Allow: /
+
+# Perplexity + Bing (often used for AI answers)
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Legacy redirect-only routes
+User-agent: *
+Disallow: /projects
+Disallow: /en/projects
+
+Sitemap: https://dannydev.space/sitemap-index.xml
+
+# AI content map (llms.txt spec)
+# https://dannydev.space/llms.txt
+# https://dannydev.space/llms-full.txt

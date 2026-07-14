@@ -1,0 +1,192 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { Lang } from "../i18n/utils";
+import { localePath, portfolioSlug } from "../i18n/utils";
+import { useTranslations } from "../i18n/ui";
+
+interface Props {
+  projects: CollectionEntry<"portafolio">[];
+  lang: Lang;
+}
+
+const { projects, lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div class="carousel" data-carousel>
+  <div class="carousel__toolbar">
+    <p class="carousel__count" data-carousel-count>
+      1 / {projects.length}
+    </p>
+    <div class="carousel__nav">
+      <button type="button" class="carousel__btn" data-carousel-prev aria-label={t("carousel.prev")}>
+        ←
+      </button>
+      <button type="button" class="carousel__btn" data-carousel-next aria-label={t("carousel.next")}>
+        →
+      </button>
+    </div>
+  </div>
+
+  <div class="carousel__viewport" tabindex="0">
+    <div class="carousel__track" data-carousel-track>
+      {
+        projects.map((project) => {
+          const slug = portfolioSlug(project.id);
+          const href = localePath(lang, `portafolio/${slug}`);
+          return (
+            <article class="carousel__slide" data-project-card>
+              <a class="carousel__link" href={href}>
+                <div class="carousel__media" style={`--accent:${project.data.accent}`}>
+                  <div data-project-media>
+                    <img
+                      src={project.data.cover}
+                      alt={project.data.title}
+                      width="960"
+                      height="600"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+                <div class="carousel__body">
+                  <p class="carousel__role">{project.data.role}</p>
+                  <h3>{project.data.title}</h3>
+                  <p>{project.data.summary}</p>
+                </div>
+              </a>
+            </article>
+          );
+        })
+      }
+    </div>
+  </div>
+</div>
+
+<script>
+  import "../scripts/carousel.ts";
+</script>
+
+<style>
+  .carousel {
+    margin-top: clamp(2rem, 5vw, 3rem);
+  }
+
+  .carousel__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .carousel__count {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .carousel__nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .carousel__btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+    color: var(--ink);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition:
+      border-color 0.25s var(--ease-out),
+      color 0.25s var(--ease-out);
+  }
+
+  .carousel__btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-deep);
+  }
+
+  .carousel__viewport {
+    overflow: hidden;
+    outline: none;
+    touch-action: pan-y;
+    cursor: grab;
+  }
+
+  .carousel__viewport:active {
+    cursor: grabbing;
+  }
+
+  .carousel__track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(16rem, 78%);
+    gap: 1rem;
+    will-change: transform;
+  }
+
+  .carousel__slide {
+    min-width: 0;
+  }
+
+  .carousel__link {
+    display: grid;
+    gap: 1rem;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .carousel__media {
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    background: color-mix(in srgb, var(--accent) 45%, var(--bg));
+  }
+
+  .carousel__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    transition: transform 0.55s var(--ease-out);
+  }
+
+  .carousel__link:hover .carousel__media img {
+    transform: scale(1.04);
+  }
+
+  .carousel__role {
+    margin-bottom: 0.35rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .carousel__body h3 {
+    font-size: clamp(1.35rem, 1.1rem + 0.7vw, 1.7rem);
+  }
+
+  .carousel__body p:last-child {
+    margin-top: 0.55rem;
+    color: var(--ink-soft);
+    font-size: 0.98rem;
+  }
+
+  @media (min-width: 780px) {
+    .carousel__track {
+      grid-auto-columns: minmax(18rem, 46%);
+      gap: 1.25rem;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .carousel__track {
+      grid-auto-columns: minmax(20rem, 32%);
+    }
+  }
+</style>

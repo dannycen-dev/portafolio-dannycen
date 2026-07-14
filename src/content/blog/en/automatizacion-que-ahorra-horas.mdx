@@ -1,0 +1,30 @@
+---
+title: "Automation that saves hours — not just ‘connected’"
+description: "How I design n8n, Make, and Zapier flows to remove manual work across CRM, APIs, and reporting."
+summary: "Map the current process → bottlenecks → reliable flows with retries, alerts, and clear owners per step."
+pubDate: 2026-06-28
+tags: ["Automation", "n8n", "Make", "Operations"]
+accent: "#0E4D5C"
+category: "Automation"
+---
+
+## The usual mistake
+
+Wiring two apps “because you can” isn’t automation. Automation means **removing repeatable work** without creating ops debt (fragile flows nobody understands).
+
+I use **n8n, Make, and Zapier** depending on the client: on-prem needs, SaaS stack, budget, and available technical staff.
+
+## Short method
+
+1. Observe a real week of operations
+2. Separate: what to automate vs. keep human
+3. Design the happy path and the failures (timeouts, duplicates, permissions)
+4. Document each scenario with a business owner
+
+## Deliverables I often ship
+
+- Lead from form/WhatsApp → CRM → task → closer notification
+- Closed-won → invoicing / folder / onboarding
+- Daily reports to Slack or email — no hand-built Excel
+
+The KPI I care about: **hours recovered per month** and fewer capture errors.

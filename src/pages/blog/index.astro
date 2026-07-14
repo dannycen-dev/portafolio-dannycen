@@ -1,0 +1,152 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { site } from "../../data/site";
+import { getLangFromUrl, localePath } from "../../i18n/utils";
+import { useTranslations } from "../../i18n/ui";
+import { blogSlug, getBlogPosts } from "../../i18n/blog";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const posts = await getBlogPosts(lang);
+const dateLocale = lang === "en" ? "en-US" : "es-MX";
+---
+
+<BaseLayout title={`${t("blog.label")} — ${site.name}`} description={t("blog.meta_description")}>
+  <section class="section blog-index">
+    <div class="container">
+      <header class="blog__intro">
+        <p class="section-label">{t("blog.label")}</p>
+        <h1 class="section-title">{t("blog.title")}</h1>
+        <p class="section-lead">{t("blog.lead")}</p>
+        <p class="blog__count">{posts.length} {lang === "en" ? "posts" : "artículos"}</p>
+      </header>
+
+      {
+        posts.length === 0 ? (
+          <p class="blog__empty">{t("blog.empty")}</p>
+        ) : (
+          <ul class="blog__grid">
+            {posts.map((post) => {
+              const slug = blogSlug(post.id);
+              const date = post.data.pubDate.toLocaleDateString(dateLocale, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
+              return (
+                <li class="blog__card">
+                  <a class="blog__link" href={localePath(lang, `blog/${slug}`)}>
+                    <div class="blog__media" style={`--accent:${post.data.accent}`}>
+                      <span>{post.data.category}</span>
+                    </div>
+                    <div class="blog__body">
+                      <p class="blog__meta">
+                        <time datetime={post.data.pubDate.toISOString()}>{date}</time>
+                      </p>
+                      <h2>{post.data.title}</h2>
+                      <p>{post.data.summary}</p>
+                    </div>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .blog__intro {
+    max-width: 48rem;
+    margin-bottom: clamp(2rem, 5vw, 3rem);
+  }
+
+  .blog__count {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .blog__empty {
+    padding: 2rem 0;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--line);
+  }
+
+  .blog__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .blog__card {
+    min-height: 12rem;
+    border-top: 1px solid var(--line);
+    padding-top: 1.5rem;
+  }
+
+  .blog__link {
+    display: grid;
+    gap: 1.15rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .blog__media {
+    display: grid;
+    place-items: end start;
+    padding: 1rem;
+    min-height: 10rem;
+    aspect-ratio: 16 / 10;
+    background:
+      radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.16), transparent 42%),
+      linear-gradient(145deg, color-mix(in srgb, var(--accent) 72%, white), var(--accent));
+  }
+
+  .blog__media span {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  .blog__meta {
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .blog__body h2 {
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+    color: var(--ink);
+  }
+
+  .blog__body p:last-child {
+    margin-top: 0.55rem;
+    max-width: 54ch;
+    color: var(--ink-soft);
+  }
+
+  @media (min-width: 820px) {
+    .blog__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2rem 1.75rem;
+    }
+
+    .blog__card {
+      border-top: 0;
+      padding-top: 0;
+    }
+  }
+</style>

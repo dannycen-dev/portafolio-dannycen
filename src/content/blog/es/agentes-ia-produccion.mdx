@@ -1,0 +1,29 @@
+---
+title: "Agentes de IA que sí llegan a producción"
+description: "Cómo diseño e implemento agentes y chatbots con OpenAI, Claude y Gemini integrados al CRM y a WhatsApp."
+summary: "De la demo al canal real: arquitectura, guardrails y métricas para agentes que atienden leads sin romper el flujo comercial."
+pubDate: 2026-07-08
+tags: ["IA", "Agentes", "Chatbots", "OpenAI"]
+accent: "#1B6B63"
+category: "Inteligencia artificial"
+---
+
+## Más allá del prompt bonito
+
+Un agente en producción no es un chat suelto. Es un sistema con memoria de negocio, herramientas (APIs, CRM, calendarios) y límites claros de lo que puede o no puede hacer.
+
+En mis proyectos combino modelos como **OpenAI, Claude y Gemini** con orquestación (n8n/Make o código) para que el agente:
+
+- califique leads
+- responda FAQs con contexto de la empresa
+- cree tareas o tickets en el CRM
+- escale a un humano cuando detecta incertidumbre
+
+## Lo que cuidamos en cada entrega
+
+1. **Brief de negocio** — objetivo, tono, idiomas, horarios
+2. **Herramientas acotadas** — solo las APIs necesarias
+3. **Observabilidad** — logs, conversaciones de muestra, tasa de handoff
+4. **Iteración semanal** — prompts y flujos se ajustan con datos reales
+
+Si tu equipo pierde horas en WhatsApp o inbox, un agente bien integrado suele ser el primer win medible.

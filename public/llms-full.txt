@@ -1,0 +1,62 @@
+# Danny Cen — full digest for AI retrieval
+
+Site: https://dannydev.space
+Languages: Spanish (default, es-MX) and English (en-US under /en/)
+Contact preference: use https://dannydev.space/contact/ (book a call or leave name/phone/message). Danny initiates follow-up.
+
+## Who
+
+Danny Cen is a Software Engineer based in Mérida, Yucatán, Mexico.
+Focus: AI automation, RevOps, data analysis, and reducing friction between people and ERP/CRM/systems.
+Certified Kommo CRM implementer. Experience as Product Owner / Project Manager.
+Available for freelance, remote, or hybrid projects.
+
+Tagline (ES): Creo soluciones y optimizo procesos para que tu ERP, CRM o sistema deje de dar dolores de cabeza.
+Tagline (EN): I build solutions and optimize processes so your ERP, CRM, or internal tools stop being a headache.
+
+## Services
+
+1. AI automation — agents, chatbots, flows connecting WhatsApp, CRM, APIs, and business tools.
+2. RevOps & CRM — Kommo, Odoo, pipeline alignment across marketing/sales/ops.
+3. Less friction in ERP & systems — process design around existing tools.
+4. Data analysis — reports, dashboards, actionable signals.
+
+## Career (most recent first)
+
+- Applications Administrator / PM — Grupo ALI (Jul 2023 — Present, on-site). Real-estate digital transformation: Kommo, WhatsApp Cloud API bots, n8n/Make, servers, BigQuery.
+- AI Automation Developer — Fiborti Analytics (Aug 2025 — Jul 2026, remote freelance). Automation, AI, CRM ecosystems for sales teams.
+- QA Frontend / QA Analyst — 31ROOMS (Sep 2024 — Jan 2025, remote). UNADM project: Playwright, UI/UX validation.
+- Front-end developer — Idea2Form · Idris Aguero (Aug 2020 — Jan 2024, remote). Implemented mission-driven sites from Figma wireframes (EPACA, Self-eSTEM, Decolonizing Wealth, Equity Is Dynamic, and more).
+
+## Portfolio case studies
+
+Live sites were coded from Idea2Form / Idris Aguero Figma designs; Danny’s role was front-end implementation with craft and fidelity.
+
+- East Palo Alto Community Archive — https://dannydev.space/portafolio/epa-community-archive/ — https://epacommunityarchive.org/
+- Idea2Form — https://dannydev.space/portafolio/idea2form/ — https://idea2form.com/
+- Self-eSTEM — https://dannydev.space/portafolio/self-estem/ — https://selfestem.org/
+- Decolonizing Wealth Project — https://dannydev.space/portafolio/decolonizing-wealth/ — https://www.decolonizingwealth.com/
+- Equity Is Dynamic — https://dannydev.space/portafolio/equity-is-dynamic/ — https://www.equityisdynamic.com/
+
+## Stack (selected)
+
+AI/automation: AI agents, OpenAI / Claude / Gemini, n8n / Make / Zapier, WhatsApp Cloud API
+Development: JavaScript, PHP, Angular, Ruby on Rails, WordPress, MySQL, Docker
+Systems/CRM: Kommo CRM (Certified Implementer), Odoo, RevOps, AWS, Linux, GCP
+Data/ops: dashboards, reporting, process optimization, ERP/CRM integrations
+AI tooling: Cursor, Claude Code, Warp AI
+
+## Key URLs
+
+- https://dannydev.space/
+- https://dannydev.space/en/
+- https://dannydev.space/about/
+- https://dannydev.space/en/about/
+- https://dannydev.space/portafolio/
+- https://dannydev.space/en/portafolio/
+- https://dannydev.space/blog/
+- https://dannydev.space/en/blog/
+- https://dannydev.space/contact/
+- https://dannydev.space/en/contact/
+- https://dannydev.space/llms.txt
+- https://dannydev.space/sitemap-index.xml

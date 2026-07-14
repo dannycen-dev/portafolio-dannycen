@@ -3,36 +3,59 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const LOADER_KEY = "dc-loader-seen";
+
 const prefersReduced = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Enable reveal animations only when JS is available — content stays visible without JS (SEO). */
+function enableMotionClasses() {
+  if (prefersReduced()) return;
+  document.documentElement.classList.add("is-animated");
+}
 
 export function initPageLoader() {
   const loader = document.querySelector<HTMLElement>("[data-loader]");
   if (!loader) return;
 
-  if (prefersReduced()) {
+  const alreadySeen = sessionStorage.getItem(LOADER_KEY) === "1";
+
+  if (prefersReduced() || alreadySeen) {
     loader.remove();
     document.documentElement.classList.add("is-ready");
     return;
   }
 
+  loader.hidden = false;
+  loader.classList.add("is-active");
+  loader.setAttribute("aria-hidden", "false");
+
   const tl = gsap.timeline({
     defaults: { ease: "power3.out" },
     onComplete: () => {
+      sessionStorage.setItem(LOADER_KEY, "1");
       loader.setAttribute("aria-hidden", "true");
       loader.classList.add("is-done");
       document.documentElement.classList.add("is-ready");
-      setTimeout(() => loader.remove(), 700);
+      gsap.to(loader, {
+        yPercent: -100,
+        duration: 0.55,
+        ease: "power4.inOut",
+        onComplete: () => loader.remove(),
+      });
     },
   });
 
+  // Short ceremonial intro (~0.9s) — does not gate content fetch; HTML is already present.
   tl.fromTo(
     "[data-loader-mark] span",
     { yPercent: 110 },
-    { yPercent: 0, duration: 0.7, stagger: 0.08 },
-  )
-    .to("[data-loader-bar]", { scaleX: 1, duration: 0.8, ease: "power2.inOut" }, "-=0.2")
-    .to(loader, { yPercent: -100, duration: 0.85, ease: "power4.inOut" }, "+=0.15");
+    { yPercent: 0, duration: 0.45, stagger: 0.05 },
+  ).to(
+    "[data-loader-bar]",
+    { scaleX: 1, duration: 0.4, ease: "power2.inOut" },
+    "-=0.1",
+  );
 }
 
 export function initHeroAnimation() {
@@ -44,28 +67,30 @@ export function initHeroAnimation() {
   const root = document.querySelector("[data-hero]");
   if (!root) return;
 
-  const tl = gsap.timeline({
-    defaults: { ease: "power3.out" },
-    delay: document.querySelector("[data-loader]") ? 1.6 : 0.15,
-  });
+  const hasLoader = Boolean(document.querySelector("[data-loader].is-active"));
 
-  tl.fromTo(
-    "[data-hero-image]",
-    { clipPath: "inset(100% 0 0 0)", scale: 1.08 },
-    { clipPath: "inset(0% 0 0 0)", scale: 1, duration: 1.25, ease: "power4.out" },
-  )
-    .from(
-      "[data-hero-anim]",
-      { y: 36, opacity: 0, duration: 0.85, stagger: 0.08 },
-      "-=0.7",
-    );
+  gsap.fromTo(
+    "[data-hero-anim]",
+    { y: 28 },
+    {
+      y: 0,
+      duration: 0.75,
+      stagger: 0.07,
+      ease: "power3.out",
+      delay: hasLoader ? 0.85 : 0.08,
+      clearProps: "transform",
+    },
+  );
+
+  // Keep hero media at full frame from first paint — no clipPath flash after the loader.
+  gsap.set("[data-hero-image]", { clearProps: "clipPath" });
 }
 
 export function initReveals() {
   const items = gsap.utils.toArray<HTMLElement>("[data-reveal]");
   if (!items.length) return;
 
-  if (prefersReduced()) {
+  if (prefersReduced() || !document.documentElement.classList.contains("is-animated")) {
     items.forEach((el) => el.classList.add("is-inview"));
     return;
   }
@@ -73,18 +98,20 @@ export function initReveals() {
   items.forEach((el) => {
     gsap.fromTo(
       el,
-      { y: 36, opacity: 0 },
+      { y: 28 },
       {
         y: 0,
-        opacity: 1,
-        duration: 0.9,
+        duration: 0.8,
         ease: "power3.out",
         scrollTrigger: {
           trigger: el,
           start: "top 88%",
           once: true,
         },
-        onComplete: () => el.classList.add("is-inview"),
+        onStart: () => el.classList.add("is-inview"),
+        onComplete: () => {
+          gsap.set(el, { clearProps: "transform" });
+        },
       },
     );
   });
@@ -107,6 +134,7 @@ export function initProjectHovers() {
 }
 
 export function initSiteAnimations() {
+  enableMotionClasses();
   initPageLoader();
   initHeroAnimation();
   initReveals();

@@ -4,46 +4,121 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import SiteLoader from "../components/SiteLoader.astro";
 import { site } from "../data/site";
+import { alternateUrls, getLangFromUrl } from "../i18n/utils";
+import { localizedSite } from "../i18n/content";
+import { useTranslations } from "../i18n/ui";
 import "../styles/global.css";
 
 interface Props {
   title?: string;
   description?: string;
+  ogImage?: string;
 }
 
+const lang = getLangFromUrl(Astro.url);
+const loc = localizedSite(lang);
+const t = useTranslations(lang);
+const siteOrigin = Astro.site?.href ?? "https://dannydev.space/";
+
 const {
-  title = `${site.name} — ${site.title}`,
-  description = site.shortBio,
+  title = `${site.name} — ${loc.title}`,
+  description = loc.shortBio,
+  ogImage = "/favicon.svg",
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://dannycen.dev");
+const pathname = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const canonicalPath = pathname === "/" ? "/" : `${pathname}/`;
+const canonical = new URL(canonicalPath, siteOrigin);
+const alts = alternateUrls(pathname, siteOrigin);
+const ogLocale = lang === "en" ? "en_US" : "es_MX";
+const ogLocaleAlt = lang === "en" ? "es_MX" : "en_US";
+const ogImageAbs = new URL(ogImage, siteOrigin).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${siteOrigin}#website`,
+      url: siteOrigin,
+      name: site.name,
+      description: loc.shortBio,
+      inLanguage: ["es-MX", "en-US"],
+      publisher: { "@id": `${siteOrigin}#person` },
+    },
+    {
+      "@type": "Person",
+      "@id": `${siteOrigin}#person`,
+      name: site.name,
+      alternateName: site.name,
+      url: siteOrigin,
+      email: site.email,
+      jobTitle: loc.title,
+      description: loc.shortBio,
+      knowsLanguage: ["es", "en"],
+      knowsAbout: [
+        "AI automation",
+        "RevOps",
+        "CRM",
+        "ERP optimization",
+        "data analysis",
+        "front-end development",
+        "WhatsApp Cloud API",
+        "Kommo CRM",
+      ],
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Mérida",
+        addressRegion: "Yucatán",
+        addressCountry: "MX",
+      },
+      sameAs: [site.linkedin, site.github],
+    },
+  ],
+};
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang === "en" ? "en-US" : "es-MX"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="author" content={site.fullName} />
-    <link rel="canonical" href={canonical} />
+    <meta name="author" content={site.name} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
+    <link rel="canonical" href={canonical.href} />
+    <link rel="alternate" hreflang="es-MX" href={alts.es} />
+    <link rel="alternate" hreflang="en-US" href={alts.en} />
+    <link rel="alternate" hreflang="x-default" href={alts.es} />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="es_MX" />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:locale:alternate" content={ogLocaleAlt} />
+    <meta property="og:image" content={ogImageAbs} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbs} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Syne:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <ClientRouter />
     <title>{title}</title>
   </head>
   <body>
-    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <a class="skip-link" href="#main">{t("skip")}</a>
     <SiteLoader />
     <Header />
     <main id="main" transition:animate="fade">
@@ -52,6 +127,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? "https://dannycen.de
     <Footer />
     <script>
       import "../scripts/animations.ts";
+      import "../scripts/i18n.ts";
     </script>
   </body>
 </html>

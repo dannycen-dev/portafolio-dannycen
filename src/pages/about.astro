@@ -1,34 +1,30 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { experience, skills, site } from "../data/site";
+import { site } from "../data/site";
+import { getLangFromUrl } from "../i18n/utils";
+import { experienceByLang, localizedSite, skillsByLang } from "../i18n/content";
+import { useTranslations } from "../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const loc = localizedSite(lang);
+const experience = experienceByLang[lang];
+const skills = skillsByLang[lang];
 ---
 
-<BaseLayout
-  title={`Sobre mí — ${site.name}`}
-  description={site.shortBio}
->
+<BaseLayout title={`${t("about.label")} — ${site.name}`} description={loc.shortBio}>
   <section class="section about">
     <div class="container about__grid">
       <div data-reveal>
-        <p class="section-label">Sobre mí</p>
-        <h1 class="section-title">Más de 10 años construyendo tecnología útil</h1>
+        <p class="section-label">{t("about.label")}</p>
+        <h1 class="section-title">{t("about.title")}</h1>
       </div>
       <div class="about__copy" data-reveal>
         <p>
-          Soy {site.fullName}, desarrollador web y especialista en automatización y
-          agentes de inteligencia artificial basado en {site.location}.
+          {t("about.p1", { name: site.name, location: loc.location })}
         </p>
-        <p>
-          Diseño e implemento agentes de IA, chatbots inteligentes y flujos de
-          automatización integrados con CRM, APIs y sistemas empresariales. Trabajo
-          con editores y terminales asistidos por IA (Cursor, Claude Code, Warp) para
-          acelerar desarrollo, debugging y despliegues.
-        </p>
-        <p>
-          Mi perfil es híbrido: técnico y estratégico. He sido Product Owner, Project
-          Manager y Administrador de Aplicaciones, además de implementador certificado
-          de Kommo CRM e integrador de WhatsApp Cloud API.
-        </p>
+        <p>{t("about.p2")}</p>
+        <p>{t("about.p3")}</p>
       </div>
     </div>
   </section>
@@ -36,8 +32,8 @@ import { experience, skills, site } from "../data/site";
   <section class="section experience">
     <div class="container">
       <div data-reveal>
-        <p class="section-label">Experiencia</p>
-        <h2 class="section-title">Trayectoria reciente</h2>
+        <p class="section-label">{t("about.exp_label")}</p>
+        <h2 class="section-title">{t("about.exp_title")}</h2>
       </div>
       <ol class="timeline">
         {
@@ -62,8 +58,8 @@ import { experience, skills, site } from "../data/site";
   <section class="section skills">
     <div class="container">
       <div data-reveal>
-        <p class="section-label">Stack</p>
-        <h2 class="section-title">Herramientas con las que trabajo</h2>
+        <p class="section-label">{t("about.stack_label")}</p>
+        <h2 class="section-title">{t("about.stack_title")}</h2>
       </div>
       <div class="skills__grid">
         {

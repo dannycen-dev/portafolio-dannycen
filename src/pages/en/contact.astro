@@ -1,0 +1,32 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ContactActions from "../../components/ContactActions.astro";
+import { site } from "../../data/site";
+import { getLangFromUrl } from "../../i18n/utils";
+import { useTranslations } from "../../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  title={`${t("contact.label")} — ${site.name}`}
+  description={t("contact.meta", { name: site.name })}
+>
+  <section class="section contact">
+    <div class="container contact__intro">
+      <div data-reveal>
+        <p class="section-label">{t("contact.label")}</p>
+        <h1 class="section-title">{t("contact.title")}</h1>
+        <p class="section-lead">{t("contact.lead")}</p>
+        <ContactActions lang={lang} />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contact__intro {
+    max-width: 40rem;
+  }
+</style>

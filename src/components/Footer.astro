@@ -1,34 +1,40 @@
 ---
-import { site, nav } from "../data/site";
+import { site } from "../data/site";
+import { getLangFromUrl, localePath } from "../i18n/utils";
+import { getNav, useTranslations } from "../i18n/ui";
+import { localizedSite } from "../i18n/content";
 
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const loc = localizedSite(lang);
+const nav = getNav(lang);
 const year = new Date().getFullYear();
 ---
 
 <footer class="footer">
   <div class="footer__inner container">
     <div class="footer__brand" data-reveal>
-      <a href="/" class="footer__name">{site.name} ↴</a>
-      <p>{site.title}</p>
-      <p class="footer__loc">{site.location}</p>
+      <a href={localePath(lang)} class="footer__name">{site.name} ↴</a>
+      <p>{loc.title}</p>
+      <p class="footer__loc">{loc.location}</p>
     </div>
 
     <div class="footer__cols">
       <div data-reveal>
-        <h3>Páginas</h3>
+        <h3>{t("footer.pages")}</h3>
         <ul>
-          {nav.map((item) => (
-            <li>
-              <a href={item.href}>{item.label}</a>
-            </li>
-          ))}
+          {
+            nav.map((item) => (
+              <li>
+                <a href={localePath(lang, item.path)}>{item.label}</a>
+              </li>
+            ))
+          }
         </ul>
       </div>
       <div data-reveal>
-        <h3>Contacto</h3>
+        <h3>{t("footer.contact")}</h3>
         <ul>
-          <li>
-            <a href={`mailto:${site.email}`}>Email</a>
-          </li>
           <li>
             <a href={site.linkedin} target="_blank" rel="noopener noreferrer">
               LinkedIn
@@ -43,7 +49,7 @@ const year = new Date().getFullYear();
       </div>
     </div>
 
-    <p class="footer__copy">© {year} {site.fullName}</p>
+    <p class="footer__copy">© {year} {site.name}</p>
   </div>
 </footer>
 

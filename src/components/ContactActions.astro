@@ -1,0 +1,265 @@
+---
+import BookingCalendar from "./BookingCalendar.astro";
+import { site } from "../data/site";
+import { useTranslations } from "../i18n/ui";
+import type { Lang } from "../i18n/utils";
+
+interface Props {
+  lang: Lang;
+  /** When false, only renders modals (triggers live elsewhere on the page). */
+  showTriggers?: boolean;
+}
+
+const { lang, showTriggers = true } = Astro.props;
+const t = useTranslations(lang);
+---
+
+{
+  showTriggers ? (
+    <div class="contact__actions" data-reveal>
+      <button class="btn" type="button" data-modal-open="booking">
+        {t("booking.label")}
+      </button>
+      <button class="btn btn--ghost" type="button" data-modal-open="message">
+        {t("contact.message_cta")}
+      </button>
+    </div>
+  ) : null
+}
+
+<dialog class="modal" id="modal-booking" data-modal="booking" aria-labelledby="modal-booking-title">
+  <div class="modal__shell">
+    <header class="modal__head">
+      <div>
+        <p class="section-label">{t("booking.label")}</p>
+        <h2 id="modal-booking-title">{t("booking.title")}</h2>
+      </div>
+      <button class="modal__close" type="button" data-modal-close aria-label={t("contact.modal_close")}>
+        <span aria-hidden="true">×</span>
+      </button>
+    </header>
+    <div class="modal__body modal__body--wide">
+      <BookingCalendar lang={lang} />
+    </div>
+  </div>
+</dialog>
+
+<dialog class="modal" id="modal-message" data-modal="message" aria-labelledby="modal-message-title">
+  <div class="modal__shell modal__shell--form">
+    <header class="modal__head">
+      <div>
+        <p class="section-label">{t("contact.message_cta")}</p>
+        <h2 id="modal-message-title">{t("contact.form_title")}</h2>
+      </div>
+      <button class="modal__close" type="button" data-modal-close aria-label={t("contact.modal_close")}>
+        <span aria-hidden="true">×</span>
+      </button>
+    </header>
+    <div class="modal__body">
+      <p class="modal__lead">{t("contact.form_lead")}</p>
+      <form
+        class="contact-form"
+        data-contact-form
+        data-email={site.email}
+        data-subject-tpl={t("contact.form_mail_subject")}
+      >
+        <label>
+          <span>{t("contact.form_name")}</span>
+          <input type="text" name="name" autocomplete="name" required />
+        </label>
+        <label>
+          <span>{t("contact.form_phone")}</span>
+          <input type="tel" name="phone" autocomplete="tel" required />
+        </label>
+        <label>
+          <span>{t("contact.form_message")}</span>
+          <textarea name="message" rows="5" required></textarea>
+        </label>
+        <button class="btn" type="submit">{t("contact.form_submit")}</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import "../scripts/contact-modals.ts";
+</script>
+
+<style>
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  .modal {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    width: min(68rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+    margin: auto;
+  }
+
+  .modal::backdrop {
+    background: rgba(10, 14, 12, 0.55);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal[open] {
+    animation: modal-in 0.28s var(--ease-out);
+  }
+
+  .modal__shell {
+    width: 100%;
+    max-height: calc(100dvh - 1rem);
+    overflow: auto;
+    border: 1px solid var(--line);
+    background: var(--bg-elevated);
+    box-shadow: 0 24px 60px rgba(8, 12, 10, 0.22);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal__shell--form {
+    width: min(32rem, 100%);
+    margin-inline: auto;
+  }
+
+  .modal__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: var(--bg-elevated);
+    z-index: 1;
+  }
+
+  .modal__head h2 {
+    font-size: clamp(1.2rem, 0.95rem + 1.1vw, 1.85rem);
+    margin-top: 0.2rem;
+  }
+
+  .modal__close {
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    font-size: 1.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .modal__close:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .modal__body {
+    padding: clamp(0.9rem, 2.5vw, 1.5rem);
+  }
+
+  .modal__lead {
+    color: var(--ink-soft);
+    margin-bottom: 1.25rem;
+  }
+
+  .contact-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .contact-form label {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .contact-form span {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 0.85rem 0.95rem;
+    font: inherit;
+  }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus {
+    outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  .contact-form textarea {
+    resize: vertical;
+    min-height: 8rem;
+  }
+
+  .contact-form .btn {
+    justify-self: start;
+    margin-top: 0.35rem;
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.6rem) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .contact__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .contact__actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .modal {
+      width: calc(100vw - 0.75rem);
+      max-width: calc(100vw - 0.75rem);
+      max-height: calc(100dvh - 0.75rem);
+    }
+
+    .modal__shell {
+      max-height: calc(100dvh - 0.75rem);
+    }
+
+    .modal__head h2 {
+      max-width: 14rem;
+    }
+
+    .contact-form .btn {
+      width: 100%;
+      justify-self: stretch;
+      justify-content: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modal[open] {
+      animation: none;
+    }
+  }
+</style>

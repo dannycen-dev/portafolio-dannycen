@@ -1,12 +1,54 @@
 ## Development
 
-When starting the dev server, use background mode:
+Local app URL (fixed — never change ports between runs):
 
 ```
-astro dev --background
+http://127.0.0.1:4329
 ```
+
+When starting the dev server, use background mode on that port only:
+
+```
+astro dev --background --host 127.0.0.1 --port 4329
+```
+
+Or: `npm run dev` (already pinned to `127.0.0.1:4329`).
 
 Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+
+If something else is already listening on 4329, stop that process and reuse 4329 — do **not** open 4330, 4331, 4322, etc.
+
+Port **4321** is often used by other local projects (e.g. Ignia); this portfolio must stay on **4329**.
+
+## Production domain
+
+Canonical site: **https://dannydev.space**
+
+Copy env templates before local Cloudflare work:
+
+```
+cp .env.example .env
+cp .dev.vars.example .dev.vars
+```
+
+## Cloudflare (Pages / Workers + D1)
+
+```
+npm run db:create          # once — paste database_id into wrangler.jsonc
+npm run db:migrate:local   # local D1 schema
+npm run db:migrate         # remote D1 schema
+npm run deploy             # astro build + wrangler deploy
+```
+
+Secrets (GCP OAuth for Calendar + Gmail):
+
+```
+npx wrangler secret put GOOGLE_CLIENT_ID
+npx wrangler secret put GOOGLE_CLIENT_SECRET
+npx wrangler secret put GOOGLE_REFRESH_TOKEN
+```
+
+API routes: `/api/health/`, `/api/messages/`, `/api/bookings/`
 
 ## Documentation
 
