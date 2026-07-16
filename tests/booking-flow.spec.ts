@@ -64,3 +64,20 @@ test.describe("Booking modal flow", () => {
     await expect(confirm).toBeEnabled();
   });
 });
+
+test.describe("Meets page", () => {
+  test.beforeEach(async ({ page }) => {
+    await seedLoaderSeen(page);
+  });
+
+  test("loads inline booking calendar", async ({ page }) => {
+    await page.goto("/meets/");
+    await expect(page.locator("[data-booking]")).toBeVisible();
+    await expect(page.locator("h1")).toContainText(/automatización|automation/i);
+
+    const days = page.locator("[data-booking-grid] button[data-date]:not(:disabled)");
+    await expect(days.first()).toBeVisible();
+    await days.first().click();
+    await expect(page.locator("[data-booking-slots-wrap]")).toHaveClass(/is-open/);
+  });
+});

@@ -105,6 +105,12 @@ export const ui = {
     "booking.success": "Agendado {date} · {time}. Te envié la confirmación y el Meet por correo.",
     "booking.prev_month": "Mes anterior",
     "booking.next_month": "Mes siguiente",
+    "meets.label": "Agendar cita",
+    "meets.title": "Agendar una cita",
+    "meets.lead":
+      "Elige fecha y horario para una videollamada de 30 minutos. Te llegará confirmación y enlace de Meet por correo.",
+    "meets.meta":
+      "Agenda una videollamada con {name}: consulta de automatización, IA, RevOps y sistemas en Mérida (CST).",
     "footer.pages": "Páginas",
     "footer.contact": "Contacto",
     "sky.caption1": "Cielo de Yucatán",
@@ -214,6 +220,12 @@ export const ui = {
     "booking.success": "Booked {date} · {time}. I emailed you the confirmation and Meet link.",
     "booking.prev_month": "Previous month",
     "booking.next_month": "Next month",
+    "meets.label": "Book a call",
+    "meets.title": "Schedule a call",
+    "meets.lead":
+      "Pick a date and time for a 30-minute video call. You'll get email confirmation and a Meet link.",
+    "meets.meta":
+      "Book a video call with {name}: automation, AI, RevOps, and systems consult (CST, Mérida).",
     "footer.pages": "Pages",
     "footer.contact": "Contact",
     "sky.caption1": "Yucatán sky",

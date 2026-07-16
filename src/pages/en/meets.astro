@@ -1,0 +1,44 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BookingCalendar from "../../components/BookingCalendar.astro";
+import { site } from "../../data/site";
+import { getLangFromUrl } from "../../i18n/utils";
+import { useTranslations } from "../../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  title={`${t("meets.title")} — ${site.name}`}
+  description={t("meets.meta", { name: site.name })}
+>
+  <section class="section meets">
+    <div class="container meets__shell">
+      <header class="meets__intro" data-reveal>
+        <p class="section-label">{t("meets.label")}</p>
+        <h1 class="section-title">{t("booking.title")}</h1>
+        <p class="section-lead">{t("meets.lead")}</p>
+      </header>
+      <div class="meets__calendar" data-reveal>
+        <BookingCalendar lang={lang} />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .meets__shell {
+    max-width: 68rem;
+  }
+
+  .meets__intro {
+    max-width: 42rem;
+    margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .meets__calendar {
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+  }
+</style>

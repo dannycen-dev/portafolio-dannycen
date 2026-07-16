@@ -12,6 +12,8 @@ This site is intentionally readable by people and by AI systems (OpenAI, Anthrop
 - [About (EN)](https://dannydev.space/en/about/): Bio, career path, stack (English)
 - [Contact (ES)](https://dannydev.space/contact/): Book a call or leave details (Danny follows up — no cold outbound email required)
 - [Contact (EN)](https://dannydev.space/en/contact/): Book a call or leave details
+- [Book a call (ES)](https://dannydev.space/meets/): Shareable scheduling page — pick date, time, and get Meet confirmation by email
+- [Book a call (EN)](https://dannydev.space/en/meets/): Shareable scheduling page
 
 ## Portfolio
 

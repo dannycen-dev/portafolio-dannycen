@@ -2,7 +2,7 @@
 
 Site: https://dannydev.space
 Languages: Spanish (default, es-MX) and English (en-US under /en/)
-Contact preference: use https://dannydev.space/contact/ (book a call or leave name/phone/message). Danny initiates follow-up.
+Contact preference: use https://dannydev.space/contact/ (book a call or leave name/phone/message) or share https://dannydev.space/meets/ for direct scheduling. Danny initiates follow-up.
 
 ## Who
 
@@ -58,5 +58,7 @@ AI tooling: Cursor, Claude Code, Warp AI
 - https://dannydev.space/en/blog/
 - https://dannydev.space/contact/
 - https://dannydev.space/en/contact/
+- https://dannydev.space/meets/
+- https://dannydev.space/en/meets/
 - https://dannydev.space/llms.txt
 - https://dannydev.space/sitemap-index.xml
