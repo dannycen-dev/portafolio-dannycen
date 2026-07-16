@@ -5,13 +5,14 @@
  * 3) fill details → enable confirm → mailto
  */
 
+import { getSlotsForDay, isBookableDay } from "../lib/booking/slots";
+
 type BookingRoot = HTMLElement & {
   dataset: DOMStringMap & {
     locale?: string;
     email?: string;
     tzLabel?: string;
     via?: string;
-    slots?: string;
     subjectTpl?: string;
     bodyTpl?: string;
     needDate?: string;
@@ -66,11 +67,6 @@ function mount(root: BookingRoot) {
   const tzLabel = root.dataset.tzLabel || "";
   const via = root.dataset.via || "Google Meet / Zoom";
   let slots: string[] = [];
-  try {
-    slots = JSON.parse(root.dataset.slots || "[]");
-  } catch {
-    slots = ["09:00", "10:00", "11:30", "14:00", "15:30", "17:00"];
-  }
   const subjectTpl = root.dataset.subjectTpl || "";
   const bodyTpl = root.dataset.bodyTpl || "";
   const needDate = root.dataset.needDate || "";
@@ -116,8 +112,7 @@ function mount(root: BookingRoot) {
     .join("");
 
   function isBookable(date: Date) {
-    const day = date.getDay();
-    if (day === 0 || day === 6) return false;
+    if (!isBookableDay(date.getDay())) return false;
     return startOfDay(date) >= today;
   }
 
@@ -235,9 +230,14 @@ function mount(root: BookingRoot) {
           nameInput.value = "";
           emailInput.value = "";
           phoneInput.value = "";
+          slots = getSlotsForDay(date.getDay());
           setReveal(guestEl!, false);
           renderCalendar();
           renderSlots();
+          void loadAvailability(date).then(() => {
+            renderSlots();
+            syncConfirm();
+          });
         });
       }
       gridEl!.appendChild(btn);
@@ -274,25 +274,19 @@ function mount(root: BookingRoot) {
   phoneInput.oninput = syncConfirm;
 
   const loadAvailability = async (day: Date) => {
+    const daySlots = getSlotsForDay(day.getDay());
+    slots = daySlots;
     try {
       const res = await fetch(`/api/bookings/?date=${ymd(day)}`);
       if (!res.ok) return;
       const data = (await res.json()) as { available?: string[]; booked?: string[] };
       if (Array.isArray(data.available)) {
-        const all = (() => {
-          try {
-            return JSON.parse(root.dataset.slots || "[]") as string[];
-          } catch {
-            return ["09:00", "10:00", "11:30", "14:00", "15:30", "17:00"];
-          }
-        })();
-        // Prefer server available list; fall back to filtering booked from defaults
         slots = data.available.length
           ? data.available
-          : all.filter((s) => !(data.booked || []).includes(s));
+          : daySlots.filter((s) => !(data.booked || []).includes(s));
       }
     } catch {
-      /* keep default slots offline */
+      /* keep daySlots offline */
     }
   };
 

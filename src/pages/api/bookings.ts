@@ -6,10 +6,10 @@ import {
   isValidEmail,
   json,
   newId,
-  parseSlots,
   readJson,
   type ApiEnv,
 } from "../../lib/api";
+import { getSlotsForDate } from "../../lib/booking/slots";
 import {
   bookingOwnerEmail,
   bookingVisitorEmail,
@@ -49,7 +49,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     return json({ ok: false, error: "Query ?date=YYYY-MM-DD is required" }, 400, { headers });
   }
 
-  const allSlots = parseSlots(e.BOOKING_SLOTS);
+  const allSlots = getSlotsForDate(date);
   const booked = await e.DB.prepare(
     `SELECT slot FROM bookings WHERE date = ? AND status != 'cancelled'`,
   )
@@ -103,9 +103,12 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: false, error: "Invalid date or slot format" }, 400, { headers });
   }
 
-  const allowed = parseSlots(e.BOOKING_SLOTS);
+  const allowed = getSlotsForDate(date);
+  if (!allowed.length) {
+    return json({ ok: false, error: "No bookings on this day" }, 400, { headers });
+  }
   if (!allowed.includes(slot)) {
-    return json({ ok: false, error: "Slot is not offered" }, 400, { headers });
+    return json({ ok: false, error: "Slot is not offered for this day" }, 400, { headers });
   }
 
   const existing = await e.DB.prepare(

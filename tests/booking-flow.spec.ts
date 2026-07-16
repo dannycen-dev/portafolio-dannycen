@@ -32,8 +32,9 @@ test.describe("Booking modal flow", () => {
     await (await nextBookableDayButton(page)).click();
 
     await expect(slotsWrap).toHaveClass(/is-open/);
-    await expect(dialog.locator("[data-booking-slots] button")).toHaveCount(6);
-    await expect(dialog.locator("[data-booking-slots] button").first()).toBeVisible();
+    const slotButtons = dialog.locator("[data-booking-slots] button");
+    await expect(slotButtons.first()).toBeVisible();
+    expect(await slotButtons.count()).toBeGreaterThan(0);
 
     // Hours must be readable (not stuck at opacity 0)
     const opacity = await dialog.locator("[data-booking-slots] button").first().evaluate((el) => {

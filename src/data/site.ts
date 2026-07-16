@@ -14,7 +14,5 @@ export const site = {
     timezone: "America/Merida",
     timezoneLabel: "CST (Mérida, Yucatán)",
     meetingVia: "Google Meet / Zoom",
-    /** 24h slots; UI formats to locale */
-    slots: ["09:00", "10:00", "11:30", "14:00", "15:30", "17:00"] as const,
   },
 };
