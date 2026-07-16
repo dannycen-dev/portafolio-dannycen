@@ -3,16 +3,34 @@
  * 1) pick date → reveal slots
  * 2) pick time → reveal name + phone
  * 3) fill details → enable confirm → mailto
+ *
+ * Host availability is defined in America/Mérida; slots render in the visitor timezone.
  */
 
 import { getSlotsForDay, isBookableDay } from "../lib/booking/slots";
+import {
+  compareYmd,
+  DEFAULT_HOST_TZ,
+  formatMeridaDateLabel,
+  formatMeridaDateLabelLong,
+  formatSlotForViewer,
+  meridaMonthLength,
+  meridaTodayYmd,
+  meridaWeekday,
+  meridaYmd,
+  shiftMeridaMonth,
+  timezoneLabel,
+  viewerTimezone,
+} from "../lib/booking/timezone";
 
 type BookingRoot = HTMLElement & {
   dataset: DOMStringMap & {
     locale?: string;
     email?: string;
+    tz?: string;
     tzLabel?: string;
     via?: string;
+    yourTzLabel?: string;
     subjectTpl?: string;
     bodyTpl?: string;
     needDate?: string;
@@ -20,27 +38,8 @@ type BookingRoot = HTMLElement & {
   };
 };
 
-function pad(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function ymd(d: Date) {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-function startOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-}
-
 function fillTemplate(tpl: string, vars: Record<string, string>) {
   return Object.entries(vars).reduce((acc, [k, v]) => acc.replaceAll(`{${k}}`, v), tpl);
-}
-
-function formatSlot(locale: string, hhmm: string) {
-  const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(d);
 }
 
 function weekdayLabels(locale: string) {
@@ -64,13 +63,16 @@ function setReveal(el: HTMLElement, open: boolean) {
 function mount(root: BookingRoot) {
   const locale = root.dataset.locale || "es-MX";
   const email = root.dataset.email || "";
-  const tzLabel = root.dataset.tzLabel || "";
+  const hostTz = root.dataset.tz || DEFAULT_HOST_TZ;
+  const hostTzLabel = root.dataset.tzLabel || timezoneLabel(hostTz, locale);
+  const viewerTz = viewerTimezone();
   const via = root.dataset.via || "Google Meet / Zoom";
   let slots: string[] = [];
   const subjectTpl = root.dataset.subjectTpl || "";
   const bodyTpl = root.dataset.bodyTpl || "";
   const needDate = root.dataset.needDate || "";
   const needTime = root.dataset.needTime || "";
+  const yourTzLabelTpl = root.dataset.yourTzLabel || "Your timezone: {tz}";
 
   const monthEl = root.querySelector<HTMLElement>("[data-booking-month]");
   const weekdaysEl = root.querySelector<HTMLElement>("[data-booking-weekdays]");
@@ -85,6 +87,8 @@ function mount(root: BookingRoot) {
   const confirmBtn = root.querySelector<HTMLButtonElement>("[data-booking-confirm]");
   const prevBtn = root.querySelector<HTMLButtonElement>("[data-booking-prev]");
   const nextBtn = root.querySelector<HTMLButtonElement>("[data-booking-next]");
+  const viewerTzWrap = root.querySelector<HTMLElement>("[data-booking-viewer-tz-wrap]");
+  const viewerTzEl = root.querySelector<HTMLElement>("[data-booking-viewer-tz]");
 
   if (
     !monthEl ||
@@ -102,15 +106,22 @@ function mount(root: BookingRoot) {
     return;
   }
 
-  const today = startOfDay(new Date());
-  let view = new Date(today.getFullYear(), today.getMonth(), 1);
-  let selectedDate: Date | null = null;
+  const meridaToday = meridaTodayYmd();
+  const todayParts = meridaToday.split("-").map(Number) as [number, number, number];
+  let viewYear = todayParts[0];
+  let viewMonth = todayParts[1];
+  let selectedYmd: string | null = null;
   let selectedSlot: string | null = null;
   const AVAILABILITY_POLL_MS = 90_000;
   const REVISION_POLL_MS = 12_000;
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let revisionTimer: ReturnType<typeof setInterval> | null = null;
   let lastRevision: number | null = null;
+
+  if (viewerTzWrap && viewerTzEl && viewerTz !== hostTz) {
+    viewerTzWrap.hidden = false;
+    viewerTzEl.textContent = yourTzLabelTpl.replace("__TZ__", timezoneLabel(viewerTz, locale));
+  }
 
   function stopAvailabilityPoll() {
     if (pollTimer != null) {
@@ -125,7 +136,7 @@ function mount(root: BookingRoot) {
   }
 
   async function pollCalendarRevision() {
-    if (!selectedDate) return;
+    if (!selectedYmd) return;
     try {
       const res = await fetch("/api/calendar/revision/");
       if (!res.ok) return;
@@ -144,14 +155,14 @@ function mount(root: BookingRoot) {
     }
   }
 
-  function startAvailabilityPoll(day: Date) {
+  function startAvailabilityPoll(ymd: string) {
     stopAvailabilityPoll();
     void pollCalendarRevision();
     revisionTimer = setInterval(() => {
       void pollCalendarRevision();
     }, REVISION_POLL_MS);
     pollTimer = setInterval(() => {
-      if (!selectedDate || ymd(selectedDate) !== ymd(day)) {
+      if (!selectedYmd || selectedYmd !== ymd) {
         stopAvailabilityPoll();
         return;
       }
@@ -160,11 +171,11 @@ function mount(root: BookingRoot) {
   }
 
   async function refreshAvailabilityForSelected() {
-    if (!selectedDate) return;
-    const day = selectedDate;
+    if (!selectedYmd) return;
+    const ymd = selectedYmd;
     const prevSlot = selectedSlot;
-    await loadAvailability(day);
-    if (!selectedDate || ymd(selectedDate) !== ymd(day)) return;
+    await loadAvailability(ymd);
+    if (!selectedYmd || selectedYmd !== ymd) return;
     if (prevSlot && !slots.includes(prevSlot)) {
       selectedSlot = null;
       setReveal(guestEl!, false);
@@ -177,9 +188,9 @@ function mount(root: BookingRoot) {
     .map((d) => `<span>${d}</span>`)
     .join("");
 
-  function isBookable(date: Date) {
-    if (!isBookableDay(date.getDay())) return false;
-    return startOfDay(date) >= today;
+  function isBookable(ymd: string) {
+    if (!isBookableDay(meridaWeekday(ymd))) return false;
+    return compareYmd(ymd, meridaToday) >= 0;
   }
 
   function guestReady() {
@@ -192,11 +203,11 @@ function mount(root: BookingRoot) {
   }
 
   function syncConfirm() {
-    confirmBtn!.disabled = !(selectedDate && selectedSlot && guestReady());
+    confirmBtn!.disabled = !(selectedYmd && selectedSlot && guestReady());
   }
 
   function syncSteps() {
-    const hasDate = Boolean(selectedDate);
+    const hasDate = Boolean(selectedYmd);
     const hasSlot = Boolean(selectedSlot);
 
     setReveal(slotsWrap!, hasDate);
@@ -210,62 +221,87 @@ function mount(root: BookingRoot) {
       emailInput.value = "";
       phoneInput.value = "";
     } else if (!hasSlot) {
-      selectedLabel!.textContent = new Intl.DateTimeFormat(locale, {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-      }).format(selectedDate!);
+      selectedLabel!.textContent = formatMeridaDateLabel(selectedYmd!, locale);
     }
 
     syncConfirm();
   }
 
+  function renderSlotButton(slot: string, index: number) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset.slot = slot;
+    btn.style.setProperty("--i", String(index));
+
+    const display = formatSlotForViewer(
+      selectedYmd!,
+      slot,
+      locale,
+      hostTz,
+      viewerTz,
+      hostTzLabel,
+    );
+
+    const primary = document.createElement("span");
+    primary.className = "booking__slot-primary";
+    primary.textContent = display.primary;
+    btn.appendChild(primary);
+
+    if (display.secondary) {
+      const secondary = document.createElement("span");
+      secondary.className = "booking__slot-secondary";
+      secondary.textContent = display.secondary;
+      btn.appendChild(secondary);
+    }
+
+    if (display.dayNote) {
+      const dayNote = document.createElement("span");
+      dayNote.className = "booking__slot-day";
+      dayNote.textContent = display.dayNote;
+      btn.appendChild(dayNote);
+    }
+
+    if (selectedSlot === slot) btn.classList.add("is-selected");
+    btn.addEventListener("click", () => {
+      selectedSlot = slot;
+      slotsEl!.querySelectorAll("button").forEach((el) => {
+        el.classList.toggle("is-selected", el.getAttribute("data-slot") === slot);
+      });
+      syncSteps();
+      window.setTimeout(() => nameInput!.focus(), 280);
+    });
+    return btn;
+  }
+
   function renderSlots() {
     slotsEl!.innerHTML = "";
-    if (!selectedDate) {
+    if (!selectedYmd) {
       syncSteps();
       return;
     }
 
-    selectedLabel!.textContent = new Intl.DateTimeFormat(locale, {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }).format(selectedDate);
+    selectedLabel!.textContent = formatMeridaDateLabel(selectedYmd, locale);
 
     for (const [index, slot] of slots.entries()) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = formatSlot(locale, slot);
-      btn.dataset.slot = slot;
-      btn.style.setProperty("--i", String(index));
-      if (selectedSlot === slot) btn.classList.add("is-selected");
-      btn.addEventListener("click", () => {
-        selectedSlot = slot;
-        slotsEl!.querySelectorAll("button").forEach((el) => {
-          el.classList.toggle("is-selected", el.getAttribute("data-slot") === slot);
-        });
-        syncSteps();
-        window.setTimeout(() => nameInput!.focus(), 280);
-      });
-      slotsEl!.appendChild(btn);
+      slotsEl!.appendChild(renderSlotButton(slot, index));
     }
 
     syncSteps();
   }
 
   function renderCalendar() {
+    const monthInstant = new Date(`${meridaYmd(viewYear, viewMonth, 1)}T12:00:00-06:00`);
     monthEl!.textContent = new Intl.DateTimeFormat(locale, {
       month: "long",
       year: "numeric",
-    }).format(view);
+      timeZone: hostTz,
+    }).format(monthInstant);
 
     gridEl!.innerHTML = "";
-    const year = view.getFullYear();
-    const month = view.getMonth();
-    const firstDow = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const prevDays = new Date(year, month, 0).getDate();
+    const firstDow = meridaWeekday(meridaYmd(viewYear, viewMonth, 1));
+    const daysInMonth = meridaMonthLength(viewYear, viewMonth);
+    const prevMonth = shiftMeridaMonth(viewYear, viewMonth, -1);
+    const prevDays = meridaMonthLength(prevMonth.year, prevMonth.month);
 
     for (let i = 0; i < firstDow; i++) {
       const btn = document.createElement("button");
@@ -277,31 +313,31 @@ function mount(root: BookingRoot) {
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
+      const ymd = meridaYmd(viewYear, viewMonth, day);
       const btn = document.createElement("button");
       btn.type = "button";
       btn.textContent = String(day);
-      btn.dataset.date = ymd(date);
-      const bookable = isBookable(date);
+      btn.dataset.date = ymd;
+      const bookable = isBookable(ymd);
       if (!bookable) {
         btn.disabled = true;
         btn.classList.add("is-muted");
       }
-      if (selectedDate && ymd(selectedDate) === ymd(date)) {
+      if (selectedYmd === ymd) {
         btn.classList.add("is-selected");
       }
       if (bookable) {
         btn.addEventListener("click", () => {
-          selectedDate = date;
+          selectedYmd = ymd;
           selectedSlot = null;
           nameInput.value = "";
           emailInput.value = "";
           phoneInput.value = "";
-          slots = getSlotsForDay(date.getDay());
+          slots = getSlotsForDay(meridaWeekday(ymd));
           setReveal(guestEl!, false);
           renderCalendar();
           renderSlots();
-          void refreshAvailabilityForSelected().then(() => startAvailabilityPoll(date));
+          void refreshAvailabilityForSelected().then(() => startAvailabilityPoll(ymd));
         });
       }
       gridEl!.appendChild(btn);
@@ -321,14 +357,18 @@ function mount(root: BookingRoot) {
 
   if (prevBtn) {
     prevBtn.onclick = () => {
-      view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
+      const prev = shiftMeridaMonth(viewYear, viewMonth, -1);
+      viewYear = prev.year;
+      viewMonth = prev.month;
       renderCalendar();
     };
   }
 
   if (nextBtn) {
     nextBtn.onclick = () => {
-      view = new Date(view.getFullYear(), view.getMonth() + 1, 1);
+      const next = shiftMeridaMonth(viewYear, viewMonth, 1);
+      viewYear = next.year;
+      viewMonth = next.month;
       renderCalendar();
     };
   }
@@ -337,11 +377,11 @@ function mount(root: BookingRoot) {
   emailInput.oninput = syncConfirm;
   phoneInput.oninput = syncConfirm;
 
-  const loadAvailability = async (day: Date) => {
-    const daySlots = getSlotsForDay(day.getDay());
+  const loadAvailability = async (ymd: string) => {
+    const daySlots = getSlotsForDay(meridaWeekday(ymd));
     slots = daySlots;
     try {
-      const res = await fetch(`/api/bookings/?date=${ymd(day)}`);
+      const res = await fetch(`/api/bookings/?date=${ymd}`);
       if (!res.ok) return;
       const data = (await res.json()) as { available?: string[]; booked?: string[] };
       if (Array.isArray(data.available)) {
@@ -355,21 +395,23 @@ function mount(root: BookingRoot) {
   };
 
   confirmBtn.onclick = async () => {
-    if (!selectedDate || !selectedSlot || !guestReady()) {
-      selectedLabel.textContent = !selectedDate ? needDate : needTime;
+    if (!selectedYmd || !selectedSlot || !guestReady()) {
+      selectedLabel.textContent = !selectedYmd ? needDate : needTime;
       syncConfirm();
       return;
     }
     const name = nameInput.value.trim();
     const guestEmail = emailInput.value.trim();
     const phone = phoneInput.value.trim();
-    const dateLabel = new Intl.DateTimeFormat(locale, {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(selectedDate);
-    const timeLabel = formatSlot(locale, selectedSlot);
+    const dateLabel = formatMeridaDateLabelLong(selectedYmd, locale);
+    const timeLabel = formatSlotForViewer(
+      selectedYmd,
+      selectedSlot,
+      locale,
+      hostTz,
+      viewerTz,
+      hostTzLabel,
+    ).primary;
 
     confirmBtn.disabled = true;
     const prevLabel = confirmBtn.textContent;
@@ -383,7 +425,7 @@ function mount(root: BookingRoot) {
           name,
           email: guestEmail,
           phone,
-          date: ymd(selectedDate),
+          date: selectedYmd,
           slot: selectedSlot,
           locale: locale.startsWith("en") ? "en" : "es",
         }),
@@ -400,8 +442,8 @@ function mount(root: BookingRoot) {
       phoneInput.value = "";
       selectedSlot = null;
       stopAvailabilityPoll();
-      await loadAvailability(selectedDate);
-      startAvailabilityPoll(selectedDate);
+      await loadAvailability(selectedYmd);
+      startAvailabilityPoll(selectedYmd);
       renderSlots();
       syncConfirm();
       const dialog = root.closest("dialog");
@@ -409,7 +451,6 @@ function mount(root: BookingRoot) {
         window.setTimeout(() => dialog.close(), 1600);
       }
     } catch (err) {
-      // Fallback: open mailto so the lead is never lost offline
       const subject = fillTemplate(subjectTpl, {
         date: dateLabel,
         time: timeLabel,
@@ -420,7 +461,7 @@ function mount(root: BookingRoot) {
       const body = fillTemplate(bodyTpl, {
         date: dateLabel,
         time: timeLabel,
-        tz: tzLabel,
+        tz: hostTzLabel,
         via,
         name,
         phone,
@@ -444,24 +485,10 @@ function mount(root: BookingRoot) {
       stopAvailabilityPoll();
       return;
     }
-    if (selectedDate) startAvailabilityPoll(selectedDate);
+    if (selectedYmd) startAvailabilityPoll(selectedYmd);
   });
 
-  // Hook day selection: re-query availability after calendar re-render clicks
-  root.addEventListener("click", (event) => {
-    const btn = (event.target as HTMLElement | null)?.closest?.<HTMLButtonElement>("[data-day]");
-    if (!btn || btn.disabled) return;
-    window.setTimeout(() => {
-      if (selectedDate) {
-        void loadAvailability(selectedDate).then(() => {
-          renderSlots();
-          syncConfirm();
-        });
-      }
-    }, 0);
-  });
-
-  selectedDate = null;
+  selectedYmd = null;
   selectedSlot = null;
   renderCalendar();
   renderSlots();

@@ -23,6 +23,8 @@ const locale = lang === "en" ? "en-US" : "es-MX";
   data-email={site.email}
   data-tz={booking.timezone}
   data-tz-label={booking.timezoneLabel}
+  data-host-hours={t("booking.host_hours")}
+  data-your-tz-label={t("booking.your_timezone", { tz: "__TZ__" })}
   data-via={booking.meetingVia}
   data-subject-tpl={t("booking.mail_subject")}
   data-body-tpl={t("booking.mail_body")}
@@ -79,7 +81,21 @@ const locale = lang === "en" ? "en-US" : "es-MX";
           </span>
           {booking.timezoneLabel}
         </li>
+        <li class="booking__viewer-tz" data-booking-viewer-tz-wrap hidden>
+          <span class="booking__icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              ><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"></circle><path
+                d="M12 7v5l3 2"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"></path></svg
+            >
+          </span>
+          <span data-booking-viewer-tz></span>
+        </li>
       </ul>
+
+      <p class="booking__host-hours">{t("booking.host_hours")}</p>
 
       <p class="booking__copy">{t("booking.lead")}</p>
     </aside>
@@ -251,6 +267,52 @@ const locale = lang === "en" ? "en-US" : "es-MX";
     border-top: 1px solid var(--line);
     color: var(--ink-soft);
     font-size: 0.94rem;
+  }
+
+  .booking__host-hours {
+    margin-bottom: 0.85rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .booking__viewer-tz {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  .booking__viewer-tz[hidden] {
+    display: none;
+  }
+
+  .booking__slots :global(.booking__slot-primary) {
+    display: block;
+    font-size: 1rem;
+  }
+
+  .booking__slots :global(.booking__slot-secondary) {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+
+  .booking__slots :global(.booking__slot-day) {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+  }
+
+  .booking__slots :global(button.is-selected .booking__slot-secondary),
+  .booking__slots :global(button.is-selected .booking__slot-day) {
+    color: color-mix(in srgb, white 82%, transparent);
   }
 
   .booking__panel {

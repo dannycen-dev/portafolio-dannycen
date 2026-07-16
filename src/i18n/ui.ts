@@ -105,6 +105,8 @@ export const ui = {
     "booking.success": "Agendado {date} · {time}. Te envié la confirmación y el Meet por correo.",
     "booking.prev_month": "Mes anterior",
     "booking.next_month": "Mes siguiente",
+    "booking.your_timezone": "Tu zona horaria: {tz}",
+    "booking.host_hours": "Disponibilidad en horario de Mérida (CST)",
     "meets.label": "Agendar cita",
     "meets.title": "Agendar una cita",
     "meets.lead":
@@ -220,6 +222,8 @@ export const ui = {
     "booking.success": "Booked {date} · {time}. I emailed you the confirmation and Meet link.",
     "booking.prev_month": "Previous month",
     "booking.next_month": "Next month",
+    "booking.your_timezone": "Your timezone: {tz}",
+    "booking.host_hours": "Availability is in Mérida time (CST)",
     "meets.label": "Book a call",
     "meets.title": "Schedule a call",
     "meets.lead":
