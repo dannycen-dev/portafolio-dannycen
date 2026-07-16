@@ -33,6 +33,9 @@ const alts = alternateUrls(pathname, siteOrigin);
 const ogLocale = lang === "en" ? "en_US" : "es_MX";
 const ogLocaleAlt = lang === "en" ? "es_MX" : "en_US";
 const ogImageAbs = new URL(ogImage, siteOrigin).href;
+const gaId =
+  (import.meta.env.PUBLIC_GA_MEASUREMENT_ID as string | undefined)?.trim() ||
+  site.gaMeasurementId;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -114,6 +117,27 @@ const jsonLd = {
       rel="stylesheet"
     />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {
+      gaId && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+          <script is:inline define:vars={{ gaId }}>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+              dataLayer.push(arguments);
+            }
+            window.gtag = gtag;
+            gtag("js", new Date());
+            gtag("config", gaId);
+            document.addEventListener("astro:after-swap", () => {
+              gtag("event", "page_view", {
+                page_path: location.pathname + location.search,
+              });
+            });
+          </script>
+        </>
+      )
+    }
     <ClientRouter />
     <title>{title}</title>
   </head>

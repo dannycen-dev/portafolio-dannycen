@@ -6,6 +6,7 @@ interface Env {
   ASSETS: Fetcher;
   DB: D1Database;
   PUBLIC_SITE_URL: string;
+  PUBLIC_GA_MEASUREMENT_ID?: string;
   BOOKING_TIMEZONE: string;
   BOOKING_SLOTS: string;
   BOOKING_DURATION_MIN: string;

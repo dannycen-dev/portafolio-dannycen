@@ -6,6 +6,8 @@ export const site = {
   linkedin: "https://www.linkedin.com/in/dannyscen/",
   github: "https://github.com/dannycen-dev",
   profileImage: "/images/danny-cen-profile.png",
+  /** GA4 Measurement ID (public; also overridable via PUBLIC_GA_MEASUREMENT_ID). */
+  gaMeasurementId: "G-S8JGBX0DRM",
   booking: {
     durationMin: 30,
     /** IANA timezone — Mérida, Yucatán */
