@@ -106,6 +106,40 @@ function mount(root: BookingRoot) {
   let view = new Date(today.getFullYear(), today.getMonth(), 1);
   let selectedDate: Date | null = null;
   let selectedSlot: string | null = null;
+  const AVAILABILITY_POLL_MS = 45_000;
+  let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+  function stopAvailabilityPoll() {
+    if (pollTimer != null) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  function startAvailabilityPoll(day: Date) {
+    stopAvailabilityPoll();
+    pollTimer = setInterval(() => {
+      if (!selectedDate || ymd(selectedDate) !== ymd(day)) {
+        stopAvailabilityPoll();
+        return;
+      }
+      void refreshAvailabilityForSelected();
+    }, AVAILABILITY_POLL_MS);
+  }
+
+  async function refreshAvailabilityForSelected() {
+    if (!selectedDate) return;
+    const day = selectedDate;
+    const prevSlot = selectedSlot;
+    await loadAvailability(day);
+    if (!selectedDate || ymd(selectedDate) !== ymd(day)) return;
+    if (prevSlot && !slots.includes(prevSlot)) {
+      selectedSlot = null;
+      setReveal(guestEl!, false);
+    }
+    renderSlots();
+    syncConfirm();
+  }
 
   weekdaysEl.innerHTML = weekdayLabels(locale)
     .map((d) => `<span>${d}</span>`)
@@ -137,6 +171,7 @@ function mount(root: BookingRoot) {
     setReveal(guestEl!, hasDate && hasSlot);
 
     if (!hasDate) {
+      stopAvailabilityPoll();
       selectedLabel!.textContent = needDate;
       selectedSlot = null;
       nameInput.value = "";
@@ -234,10 +269,7 @@ function mount(root: BookingRoot) {
           setReveal(guestEl!, false);
           renderCalendar();
           renderSlots();
-          void loadAvailability(date).then(() => {
-            renderSlots();
-            syncConfirm();
-          });
+          void refreshAvailabilityForSelected().then(() => startAvailabilityPoll(date));
         });
       }
       gridEl!.appendChild(btn);
@@ -335,7 +367,9 @@ function mount(root: BookingRoot) {
       emailInput.value = "";
       phoneInput.value = "";
       selectedSlot = null;
+      stopAvailabilityPoll();
       await loadAvailability(selectedDate);
+      startAvailabilityPoll(selectedDate);
       renderSlots();
       syncConfirm();
       const dialog = root.closest("dialog");
@@ -367,6 +401,19 @@ function mount(root: BookingRoot) {
       syncConfirm();
     }
   };
+
+  const dialog = root.closest("dialog");
+  if (dialog instanceof HTMLDialogElement) {
+    dialog.addEventListener("close", stopAvailabilityPoll);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopAvailabilityPoll();
+      return;
+    }
+    if (selectedDate) startAvailabilityPoll(selectedDate);
+  });
 
   // Hook day selection: re-query availability after calendar re-render clicks
   root.addEventListener("click", (event) => {

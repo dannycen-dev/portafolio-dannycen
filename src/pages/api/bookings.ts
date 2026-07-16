@@ -11,11 +11,16 @@ import {
 } from "../../lib/api";
 import { getSlotsForDate } from "../../lib/booking/slots";
 import {
+  filterAvailableSlots,
+  slotOverlapsBusy,
+  slotsBlockedByCalendar,
+} from "../../lib/booking/availability";
+import {
   bookingOwnerEmail,
   bookingVisitorEmail,
 } from "../../lib/email/templates";
 import { hasGoogleCreds } from "../../lib/google/auth";
-import { createCalendarEvent } from "../../lib/google/calendar";
+import { createCalendarEvent, getCalendarBusyPeriods } from "../../lib/google/calendar";
 import { sendEmail } from "../../lib/google/gmail";
 
 export const prerender = false;
@@ -50,6 +55,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   }
 
   const allSlots = getSlotsForDate(date);
+  const durationMin = Number(e.BOOKING_DURATION_MIN || "30") || 30;
   const booked = await e.DB.prepare(
     `SELECT slot FROM bookings WHERE date = ? AND status != 'cancelled'`,
   )
@@ -57,7 +63,20 @@ export const GET: APIRoute = async ({ request, url }) => {
     .all<{ slot: string }>();
 
   const taken = new Set((booked.results || []).map((r) => r.slot));
-  const available = allSlots.filter((s) => !taken.has(s));
+  let calendarBusy: Awaited<ReturnType<typeof getCalendarBusyPeriods>> = [];
+  let calendarSync = "skipped" as "ok" | "skipped" | "error";
+
+  if (hasGoogleCreds(e)) {
+    try {
+      calendarBusy = await getCalendarBusyPeriods(e, date);
+      calendarSync = "ok";
+    } catch {
+      calendarSync = "error";
+    }
+  }
+
+  const blockedByCalendar = slotsBlockedByCalendar(date, allSlots, calendarBusy, durationMin);
+  const available = filterAvailableSlots(date, allSlots, taken, calendarBusy, durationMin);
 
   return json(
     {
@@ -67,6 +86,8 @@ export const GET: APIRoute = async ({ request, url }) => {
       slots: allSlots,
       available,
       booked: [...taken],
+      calendarBusy: blockedByCalendar,
+      calendarSync,
     },
     200,
     { headers },
@@ -119,6 +140,18 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (existing) {
     return json({ ok: false, error: "Slot already booked" }, 409, { headers });
+  }
+
+  const durationMin = Number(e.BOOKING_DURATION_MIN || "30") || 30;
+  if (hasGoogleCreds(e)) {
+    try {
+      const calendarBusy = await getCalendarBusyPeriods(e, date);
+      if (slotOverlapsBusy(date, slot, durationMin, calendarBusy)) {
+        return json({ ok: false, error: "Slot is no longer available" }, 409, { headers });
+      }
+    } catch {
+      /* proceed with D1 guard if Calendar is temporarily unreachable */
+    }
   }
 
   const id = newId("bk");

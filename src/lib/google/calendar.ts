@@ -1,4 +1,5 @@
 import { getGoogleAccessToken, type GoogleAuthEnv } from "./auth";
+import { addMeridaDay, type BusyPeriod } from "../booking/availability";
 
 export type CalendarEnv = GoogleAuthEnv & {
   GOOGLE_CALENDAR_ID?: string;
@@ -96,4 +97,41 @@ export async function createCalendarEvent(
     data.conferenceData?.entryPoints?.find((e) => e.entryPointType === "video")?.uri;
 
   return { eventId: data.id, htmlLink: data.htmlLink, meetLink: meet };
+}
+
+/** Busy periods on the given date from Google Calendar (manual blocks + any events). */
+export async function getCalendarBusyPeriods(
+  env: CalendarEnv,
+  date: string,
+): Promise<BusyPeriod[]> {
+  const token = await getGoogleAccessToken(env);
+  const calendarId = env.GOOGLE_CALENDAR_ID || "primary";
+  const timezone = env.BOOKING_TIMEZONE || "America/Merida";
+  const timeMin = `${date}T00:00:00-06:00`;
+  const timeMax = `${addMeridaDay(date)}T00:00:00-06:00`;
+
+  const res = await fetch("https://www.googleapis.com/calendar/v3/freeBusy", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      timeMin,
+      timeMax,
+      timeZone: timezone,
+      items: [{ id: calendarId }],
+    }),
+  });
+
+  const data = (await res.json()) as {
+    calendars?: Record<string, { busy?: BusyPeriod[] }>;
+    error?: { message?: string };
+  };
+
+  if (!res.ok) {
+    throw new Error(data.error?.message || `Calendar freeBusy failed (${res.status})`);
+  }
+
+  return data.calendars?.[calendarId]?.busy ?? [];
 }
