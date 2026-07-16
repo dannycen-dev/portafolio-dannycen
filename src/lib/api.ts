@@ -13,6 +13,7 @@ export type ApiEnv = {
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GOOGLE_REFRESH_TOKEN?: string;
+  GOOGLE_CALENDAR_WATCH_TOKEN?: string;
 };
 
 export function json(data: unknown, status = 200, init: ResponseInit = {}) {

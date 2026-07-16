@@ -106,18 +106,50 @@ function mount(root: BookingRoot) {
   let view = new Date(today.getFullYear(), today.getMonth(), 1);
   let selectedDate: Date | null = null;
   let selectedSlot: string | null = null;
-  const AVAILABILITY_POLL_MS = 45_000;
+  const AVAILABILITY_POLL_MS = 90_000;
+  const REVISION_POLL_MS = 12_000;
   let pollTimer: ReturnType<typeof setInterval> | null = null;
+  let revisionTimer: ReturnType<typeof setInterval> | null = null;
+  let lastRevision: number | null = null;
 
   function stopAvailabilityPoll() {
     if (pollTimer != null) {
       clearInterval(pollTimer);
       pollTimer = null;
     }
+    if (revisionTimer != null) {
+      clearInterval(revisionTimer);
+      revisionTimer = null;
+    }
+    lastRevision = null;
+  }
+
+  async function pollCalendarRevision() {
+    if (!selectedDate) return;
+    try {
+      const res = await fetch("/api/calendar/revision/");
+      if (!res.ok) return;
+      const data = (await res.json()) as { revision?: number };
+      if (typeof data.revision !== "number") return;
+      if (lastRevision === null) {
+        lastRevision = data.revision;
+        return;
+      }
+      if (data.revision !== lastRevision) {
+        lastRevision = data.revision;
+        await refreshAvailabilityForSelected();
+      }
+    } catch {
+      /* offline */
+    }
   }
 
   function startAvailabilityPoll(day: Date) {
     stopAvailabilityPoll();
+    void pollCalendarRevision();
+    revisionTimer = setInterval(() => {
+      void pollCalendarRevision();
+    }, REVISION_POLL_MS);
     pollTimer = setInterval(() => {
       if (!selectedDate || ymd(selectedDate) !== ymd(day)) {
         stopAvailabilityPoll();

@@ -21,6 +21,10 @@ import {
 } from "../../lib/email/templates";
 import { hasGoogleCreds } from "../../lib/google/auth";
 import { createCalendarEvent, getCalendarBusyPeriods } from "../../lib/google/calendar";
+import {
+  bumpCalendarRevision,
+  ensureCalendarWatch,
+} from "../../lib/google/calendar-watch";
 import { sendEmail } from "../../lib/google/gmail";
 
 export const prerender = false;
@@ -67,6 +71,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   let calendarSync = "skipped" as "ok" | "skipped" | "error";
 
   if (hasGoogleCreds(e)) {
+    void ensureCalendarWatch(e);
     try {
       calendarBusy = await getCalendarBusyPeriods(e, date);
       calendarSync = "ok";
@@ -144,6 +149,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const durationMin = Number(e.BOOKING_DURATION_MIN || "30") || 30;
   if (hasGoogleCreds(e)) {
+    void ensureCalendarWatch(e);
     try {
       const calendarBusy = await getCalendarBusyPeriods(e, date);
       if (slotOverlapsBusy(date, slot, durationMin, calendarBusy)) {
@@ -260,6 +266,8 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ ok: false, error: "Could not save booking", details: msg }, 500, { headers });
     }
   }
+
+  await bumpCalendarRevision(e.DB);
 
   return json(
     {
